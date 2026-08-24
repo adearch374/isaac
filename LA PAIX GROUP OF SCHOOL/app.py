@@ -6,8 +6,14 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///school.db'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
+
+# Use Render's Postgres if DATABASE_URL is set, otherwise fall back to local SQLite for dev.
+database_url = os.environ.get('DATABASE_URL', 'sqlite:///school.db')
+# Render provides URLs starting with "postgres://" but SQLAlchemy needs "postgresql://"
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -1845,6 +1851,8 @@ def init_db():
             db.session.commit()
             print("Database initialized with default admin accounts and academic data")
 
+# Run once when the module is imported (needed for gunicorn/production, not just `python app.py`)
+init_db()
+
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True, port=5000)
