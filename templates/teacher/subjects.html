@@ -183,7 +183,8 @@
             <!-- Subjects Table -->
             <div class="table-container">
                 {% if approved_assignments %}
-                    <table class="data-table">
+                    <div class="table-responsive">
+<table class="data-table">
                         <thead>
                             <tr>
                                 <th>Subject</th>
@@ -203,6 +204,7 @@
                             {% endfor %}
                         </tbody>
                     </table>
+</div>
                 {% else %}
                     <div class="empty-state">
                         <div class="empty-state-icon">📚</div>

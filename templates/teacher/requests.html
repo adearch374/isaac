@@ -278,7 +278,8 @@
             {% endwith %}
 
             {% if requests %}
-                <table class="requests-table">
+                <div class="table-responsive">
+<table class="requests-table">
                     <thead>
                         <tr>
                             <th>Subject</th>
@@ -302,6 +303,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
+</div>
             {% else %}
                 <div class="empty-state">
                     <h3>No Teaching Requests Yet</h3>

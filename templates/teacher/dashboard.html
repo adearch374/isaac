@@ -420,7 +420,8 @@
                 <div class="info-card">
                     <h3>Approved Teaching Assignments</h3>
                     {% if approved_assignments %}
-                        <table class="assignments-table">
+                        <div class="table-responsive">
+<table class="assignments-table">
                             <thead>
                                 <tr>
                                     <th>Subject</th>
@@ -438,6 +439,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+</div>
                     {% else %}
                         <p>No approved assignments yet. Submit subject and class requests to get started.</p>
                     {% endif %}

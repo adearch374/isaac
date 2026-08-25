@@ -421,7 +421,8 @@
                 <div class="info-card">
                     <h3>Recent Results</h3>
                     {% if recent_results %}
-                        <table class="results-table">
+                        <div class="table-responsive">
+<table class="results-table">
                             <thead>
                                 <tr>
                                     <th>Subject</th>
@@ -439,6 +440,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+</div>
                     {% else %}
                         <p>No results available yet.</p>
                     {% endif %}

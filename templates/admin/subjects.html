@@ -305,7 +305,8 @@
             {% endwith %}
 
             {% if subjects %}
-                <table class="subjects-table">
+                <div class="table-responsive">
+<table class="subjects-table">
                     <thead>
                         <tr>
                             <th>Subject Code</th>
@@ -338,6 +339,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
+</div>
             {% else %}
                 <div class="empty-state">
                     <h3>No Subjects Found</h3>

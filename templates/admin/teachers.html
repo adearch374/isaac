@@ -319,7 +319,8 @@
             {% endwith %}
 
             {% if teachers %}
-                <table class="teachers-table">
+                <div class="table-responsive">
+<table class="teachers-table">
                     <thead>
                         <tr>
                             <th>Teacher ID</th>
@@ -356,6 +357,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
+</div>
             {% else %}
                 <div class="empty-state">
                     <h3>No Teachers Found</h3>

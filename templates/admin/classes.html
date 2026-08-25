@@ -305,7 +305,8 @@
             {% endwith %}
 
             {% if classes %}
-                <table class="classes-table">
+                <div class="table-responsive">
+<table class="classes-table">
                     <thead>
                         <tr>
                             <th>Class Name</th>
@@ -340,6 +341,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
+</div>
             {% else %}
                 <div class="empty-state">
                     <h3>No Classes Found</h3>
