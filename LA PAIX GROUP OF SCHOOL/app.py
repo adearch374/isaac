@@ -10,9 +10,11 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-
 
 # Use Render's Postgres if DATABASE_URL is set, otherwise fall back to local SQLite for dev.
 database_url = os.environ.get('DATABASE_URL', 'sqlite:///school.db')
-# Render provides URLs starting with "postgres://" but SQLAlchemy needs "postgresql://"
+# Render provides URLs starting with "postgres://" — convert to the pg8000 driver format
 if database_url.startswith('postgres://'):
-    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    database_url = database_url.replace('postgres://', 'postgresql+pg8000://', 1)
+elif database_url.startswith('postgresql://'):
+    database_url = database_url.replace('postgresql://', 'postgresql+pg8000://', 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
