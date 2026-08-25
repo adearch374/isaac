@@ -140,6 +140,28 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 60, 114, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -190,6 +212,7 @@
                                 <th>Level</th>
                                 <th>Subject</th>
                                 <th>Assigned Date</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -199,6 +222,9 @@
                                     <td>{{ assignment.class_assigned.level or '-' }}</td>
                                     <td>{{ assignment.subject.name }}</td>
                                     <td>{{ assignment.approved_at.strftime('%B %d, %Y') if assignment.approved_at else '-' }}</td>
+                                    <td>
+                                        <a href="{{ url_for('teacher_print_class_students', class_id=assignment.class_assigned.id) }}" class="btn btn-primary" target="_blank">🖨️ Print Students</a>
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>

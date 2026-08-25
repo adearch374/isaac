@@ -280,6 +280,10 @@
                 width: 100%;
             }
         }
+
+        #class-filter {
+            min-width: 200px;
+        }
     </style>
 </head>
 <body>
@@ -316,7 +320,13 @@
             <div class="top-bar">
                 <h1>Manage Students</h1>
                 <div class="action-buttons">
-                    <input type="text" class="search-box" placeholder="Search students...">
+                    <select id="class-filter" class="search-box" onchange="filterByClass()">
+                        <option value="">All Classes</option>
+                        {% for cls in classes %}
+                            <option value="{{ cls.id }}">{{ cls.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button onclick="printSelectedClass()" class="btn btn-primary">🖨️ Print Class List</button>
                     <a href="{{ url_for('add_student') }}" class="btn btn-success">+ Add Student</a>
                 </div>
             </div>
@@ -375,5 +385,33 @@
             {% endif %}
         </div>
     </div>
+
+    <script>
+        function filterByClass() {
+            const classId = document.getElementById('class-filter').value;
+            const rows = document.querySelectorAll('.students-table tbody tr');
+            
+            rows.forEach(row => {
+                if (classId === '') {
+                    row.style.display = '';
+                } else {
+                    const classCell = row.cells[2].textContent;
+                    // Get class name from the dropdown
+                    const classSelect = document.getElementById('class-filter');
+                    const selectedClass = classSelect.options[classSelect.selectedIndex].text;
+                    row.style.display = classCell === selectedClass ? '' : 'none';
+                }
+            });
+        }
+
+        function printSelectedClass() {
+            const classId = document.getElementById('class-filter').value;
+            if (classId === '') {
+                alert('Please select a class to print.');
+                return;
+            }
+            window.open('/admin/students/print/' + classId, '_blank');
+        }
+    </script>
 </body>
 </html>

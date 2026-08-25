@@ -246,12 +246,12 @@ class Event(db.Model):
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     title = db.Column(db.String(200), nullable=False)
     message = db.Column(db.Text, nullable=False)
     notification_type = db.Column(db.String(50))  # 'news', 'event', 'result', 'general'
     related_id = db.Column(db.Integer)  # ID of related news/event/etc.
-    is_read = db.Column(db.Boolean, default=False)
+    is_read = db.Column(db.Boolean, default=False, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     user = db.relationship('User', backref='notifications')
@@ -391,6 +391,9 @@ def admin_dashboard():
     current_session = AcademicSession.query.filter_by(is_active=True).first()
     current_term = Term.query.filter_by(is_active=True).first() if current_session else None
     
+    # Efficiently count unread notifications
+    unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+    
     return render_template('admin/dashboard.html', 
                          total_students=total_students,
                          total_teachers=total_teachers,
@@ -399,7 +402,8 @@ def admin_dashboard():
                          pending_requests=pending_requests,
                          pending_results=pending_results,
                          current_session=current_session,
-                         current_term=current_term)
+                         current_term=current_term,
+                         unread_count=unread_count)
 
 @app.route('/admin/teacher-requests')
 @login_required
@@ -461,6 +465,41 @@ def admin_students():
     students = Student.query.all()
     classes = Class.query.filter_by(is_active=True).all()
     return render_template('admin/students.html', students=students, classes=classes)
+
+@app.route('/admin/students/print/<int:class_id>')
+@login_required
+def print_class_students(class_id):
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    
+    class_obj = Class.query.get_or_404(class_id)
+    students = Student.query.filter_by(class_id=class_id, is_active=True).order_by(Student.full_name).all()
+    
+    return render_template('admin/print_students.html', students=students, class_obj=class_obj)
+
+@app.route('/teacher/students/print/<int:class_id>')
+@login_required
+def teacher_print_class_students(class_id):
+    if current_user.role != 'teacher':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    
+    # Verify teacher is assigned to this class
+    assignment = TeacherSubjectRequest.query.filter_by(
+        teacher_id=current_user.id,
+        class_id=class_id,
+        status='approved'
+    ).first()
+    
+    if not assignment:
+        flash('Access denied. You are not assigned to this class.', 'error')
+        return redirect(url_for('teacher_classes'))
+    
+    class_obj = Class.query.get_or_404(class_id)
+    students = Student.query.filter_by(class_id=class_id, is_active=True).order_by(Student.full_name).all()
+    
+    return render_template('admin/print_students.html', students=students, class_obj=class_obj)
 
 @app.route('/admin/students/add', methods=['GET', 'POST'])
 @login_required
@@ -763,12 +802,16 @@ def student_dashboard():
     current_session = AcademicSession.query.filter_by(is_active=True).first()
     current_term = Term.query.filter_by(is_active=True).first() if current_session else None
     
+    # Efficiently count unread notifications
+    unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+    
     return render_template('student/dashboard.html',
                          student=student,
                          subjects_count=subjects_count,
                          recent_results=recent_results,
                          current_session=current_session,
-                         current_term=current_term)
+                         current_term=current_term,
+                         unread_count=unread_count)
 
 # Teacher Routes
 @app.route('/teacher/dashboard')
@@ -802,13 +845,17 @@ def teacher_dashboard():
     current_session = AcademicSession.query.filter_by(is_active=True).first()
     current_term = Term.query.filter_by(is_active=True).first() if current_session else None
     
+    # Efficiently count unread notifications
+    unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+    
     return render_template('teacher/dashboard.html',
                          teacher=teacher,
                          approved_assignments=approved_assignments,
                          pending_requests=pending_requests,
                          rejected_requests=rejected_requests,
                          current_session=current_session,
-                         current_term=current_term)
+                         current_term=current_term,
+                         unread_count=unread_count)
 
 @app.route('/teacher/requests')
 @login_required
@@ -1441,43 +1488,6 @@ def add_administrator():
     
     return render_template('admin/add_administrator.html')
 
-# Contact Messages - Admin
-@app.route('/admin/messages')
-@login_required
-def admin_messages():
-    if current_user.role != 'admin':
-        flash('Access denied', 'error')
-        return redirect(url_for('index'))
-    
-    messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
-    return render_template('admin/messages.html', messages=messages)
-
-@app.route('/admin/messages/<int:message_id>/mark-read', methods=['POST'])
-@login_required
-def mark_message_read(message_id):
-    if current_user.role != 'admin':
-        flash('Access denied', 'error')
-        return redirect(url_for('index'))
-    
-    message = ContactMessage.query.get_or_404(message_id)
-    message.is_read = True
-    db.session.commit()
-    flash('Message marked as read', 'success')
-    return redirect(url_for('admin_messages'))
-
-@app.route('/admin/messages/<int:message_id>/delete', methods=['POST'])
-@login_required
-def delete_message(message_id):
-    if current_user.role != 'admin':
-        flash('Access denied', 'error')
-        return redirect(url_for('index'))
-    
-    message = ContactMessage.query.get_or_404(message_id)
-    db.session.delete(message)
-    db.session.commit()
-    flash('Message deleted successfully', 'success')
-    return redirect(url_for('admin_messages'))
-
 # Activity Logs - Admin
 @app.route('/admin/activity-logs')
 @login_required
@@ -1631,6 +1641,43 @@ def add_event():
         return redirect(url_for('admin_events'))
     
     return render_template('admin/add_event.html')
+
+# Contact Messages Management - Admin
+@app.route('/admin/messages')
+@login_required
+def admin_messages():
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    
+    messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
+    return render_template('admin/messages.html', messages=messages)
+
+@app.route('/admin/messages/<int:message_id>/mark-read', methods=['POST'])
+@login_required
+def mark_message_read(message_id):
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    
+    message = ContactMessage.query.get_or_404(message_id)
+    message.is_read = True
+    db.session.commit()
+    flash('Message marked as read', 'success')
+    return redirect(url_for('admin_messages'))
+
+@app.route('/admin/messages/<int:message_id>/delete', methods=['POST'])
+@login_required
+def delete_message(message_id):
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    
+    message = ContactMessage.query.get_or_404(message_id)
+    db.session.delete(message)
+    db.session.commit()
+    flash('Message deleted successfully', 'success')
+    return redirect(url_for('admin_messages'))
 
 @app.route('/admin/events/<int:event_id>/publish', methods=['POST'])
 @login_required

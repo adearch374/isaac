@@ -367,7 +367,6 @@
             <div class="top-bar">
                 <h1>Student Dashboard</h1>
                 <div class="user-info">
-                    {% set unread_count = current_user.notifications|selectattr('is_read', 'equalto', false)|list|length %}
                     <a href="{{ url_for('user_notifications') }}" class="notification-btn">
                         🔔 {% if unread_count > 0 %}<span class="notification-count">{{ unread_count }}</span>{% endif %}
                     </a>
