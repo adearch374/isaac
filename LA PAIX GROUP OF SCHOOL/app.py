@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+from types import SimpleNamespace
 import os
 
 app = Flask(__name__)
@@ -396,6 +397,10 @@ def admin_dashboard():
     total_subjects = Subject.query.filter_by(is_active=True).count()
     pending_requests = TeacherSubjectRequest.query.filter_by(status='pending').count()
     pending_results = Result.query.filter_by(status='submitted').count()
+
+    unread_count = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
+    unread_count += ContactMessage.query.filter_by(is_read=False).count()
+    unread_count += pending_requests + pending_results
     
     current_session = AcademicSession.query.filter_by(is_active=True).first()
     current_term = Term.query.filter_by(is_active=True).first() if current_session else None
@@ -407,6 +412,7 @@ def admin_dashboard():
                          total_subjects=total_subjects,
                          pending_requests=pending_requests,
                          pending_results=pending_results,
+                         unread_count=unread_count,
                          current_session=current_session,
                          current_term=current_term)
 
@@ -1670,7 +1676,38 @@ def publish_event(event_id):
 @login_required
 def user_notifications():
     notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).limit(50).all()
-    return render_template('notifications.html', notifications=notifications)
+    admin_alerts = []
+    if current_user.role == 'admin':
+        unread_messages = ContactMessage.query.filter_by(is_read=False).count()
+        pending_requests = TeacherSubjectRequest.query.filter_by(status='pending').count()
+        pending_results = Result.query.filter_by(status='submitted').count()
+
+        if unread_messages:
+            admin_alerts.append(SimpleNamespace(
+                title='New Contact Messages',
+                message=f'{unread_messages} contact message(s) need your attention.',
+                notification_type='message',
+                created_at=datetime.utcnow(),
+                url=url_for('admin_messages')
+            ))
+        if pending_requests:
+            admin_alerts.append(SimpleNamespace(
+                title='Teacher Requests Awaiting Approval',
+                message=f'{pending_requests} teacher request(s) are waiting for approval.',
+                notification_type='request',
+                created_at=datetime.utcnow(),
+                url=url_for('admin_teacher_requests')
+            ))
+        if pending_results:
+            admin_alerts.append(SimpleNamespace(
+                title='Results Awaiting Approval',
+                message=f'{pending_results} result submission(s) are waiting for approval.',
+                notification_type='result',
+                created_at=datetime.utcnow(),
+                url=url_for('admin_results')
+            ))
+
+    return render_template('notifications.html', notifications=notifications, admin_alerts=admin_alerts)
 
 @app.route('/notifications/<int:notification_id>/mark-read', methods=['POST'])
 @login_required
