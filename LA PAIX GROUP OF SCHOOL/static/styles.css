@@ -1112,6 +1112,19 @@ html, body {
     }
 }
 
+/* Pages without a dashboard toggle keep their navigation visible beside content. */
+@media (max-width: 768px) {
+    .dashboard-container:not(:has(.sidebar-toggle)) .sidebar {
+        width: 200px !important;
+        transform: translateX(0) !important;
+    }
+
+    .dashboard-container:not(:has(.sidebar-toggle)) .main-content {
+        margin-left: 200px !important;
+        width: calc(100% - 200px) !important;
+    }
+}
+
 /* Animations */
 @keyframes fadeInUp {
     from {
