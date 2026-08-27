@@ -1241,7 +1241,7 @@ def add_attendance():
                 date=date,
                 status=status,
                 notes=notes,
-                recorded_by=current_user.id
+                recorded_by=None
             )
             db.session.add(attendance)
         
