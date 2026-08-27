@@ -298,25 +298,51 @@
             right: -5px;
         }
 
+        .sidebar-toggle {
+            display: none;
+            background: #1e3c72;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 width: 200px;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
             }
 
             .main-content {
-                margin-left: 200px;
+                margin-left: 0;
+            }
+
+            .sidebar-toggle {
+                display: block;
             }
 
             .student-stats {
                 grid-template-columns: repeat(2, 1fr);
+            }
+
+            .info-cards {
+                grid-template-columns: 1fr;
             }
         }
 
         @media (max-width: 480px) {
             .sidebar {
                 width: 100%;
-                position: relative;
-                height: auto;
+                position: fixed;
+                z-index: 1000;
+                height: 100vh;
             }
 
             .main-content {
@@ -336,6 +362,14 @@
             .student-info-header {
                 flex-direction: column;
                 text-align: center;
+            }
+
+            .stat-card h3 {
+                font-size: 2rem;
+            }
+
+            .info-card h3 {
+                font-size: 1rem;
             }
         }
     </style>
@@ -365,6 +399,7 @@
         <!-- Main Content -->
         <div class="main-content">
             <div class="top-bar">
+                <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
                 <h1>Student Dashboard</h1>
                 <div class="user-info">
                     <a href="{{ url_for('user_notifications') }}" class="notification-btn">
@@ -467,5 +502,23 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.querySelector('.sidebar');
+            const toggle = document.querySelector('.sidebar-toggle');
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(event.target) && !toggle.contains(event.target)) {
+                    sidebar.classList.remove('active');
+                }
+            }
+        });
+    </script>
 </body>
 </html>

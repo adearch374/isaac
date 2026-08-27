@@ -14,7 +14,12 @@
                 <img src="{{ url_for('static', filename='logo.png') }}" alt="La Paix Group of Schools Logo" class="logo">
                 <h1>La Paix Group of Schools</h1>
             </div>
-            <ul class="nav-menu">
+            <div class="menu-toggle" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <ul class="nav-menu" id="nav-menu">
                 <li><a href="#home">Home</a></li>
                 <li><a href="#about">About Us</a></li>
                 <li><a href="#vision-mission">Vision & Mission</a></li>
@@ -390,23 +395,36 @@
     </footer>
 
     <script>
+        // Mobile Menu Toggle
+        function toggleMenu() {
+            const navMenu = document.getElementById('nav-menu');
+            navMenu.classList.toggle('active');
+        }
+
+        // Close menu when clicking on a link
+        document.querySelectorAll('.nav-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('nav-menu').classList.remove('active');
+            });
+        });
+
         // News & Achievements Tab Switching
         document.addEventListener('DOMContentLoaded', function() {
             const tabs = document.querySelectorAll('.news-tab');
             const contents = document.querySelectorAll('.news-content');
-            
+
             // Show first content by default
             contents[0].classList.add('active');
-            
+
             tabs.forEach(tab => {
                 tab.addEventListener('click', function() {
                     // Remove active class from all tabs and contents
                     tabs.forEach(t => t.classList.remove('active'));
                     contents.forEach(c => c.classList.remove('active'));
-                    
+
                     // Add active class to clicked tab
                     this.classList.add('active');
-                    
+
                     // Show corresponding content
                     const tabName = this.getAttribute('data-tab');
                     document.getElementById(tabName + '-content').classList.add('active');
