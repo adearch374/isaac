@@ -28,6 +28,15 @@ login_manager.login_view = 'login'
 def inject_datetime():
     return dict(datetime=datetime)
 
+@app.after_request
+def add_mobile_sidebar_script(response):
+    if response.content_type.startswith('text/html'):
+        html = response.get_data(as_text=True)
+        script_tag = '<script src="/static/mobile-sidebar.js"></script>'
+        if script_tag not in html and '</body>' in html:
+            response.set_data(html.replace('</body>', f'{script_tag}</body>'))
+    return response
+
 # Database Models
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)

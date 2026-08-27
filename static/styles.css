@@ -1318,16 +1318,21 @@ body {
     }
 }
 
-/* Pages without a dashboard toggle keep their navigation visible beside content. */
-@media (max-width: 768px) {
-    .dashboard-container:not(:has(.sidebar-toggle)) .sidebar {
-        width: 200px !important;
-        transform: translateX(0) !important;
-    }
+.sidebar-toggle {
+    display: none;
+}
 
-    .dashboard-container:not(:has(.sidebar-toggle)) .main-content {
-        margin-left: 200px !important;
-        width: calc(100% - 200px) !important;
+@media (max-width: 768px) {
+    .sidebar-toggle {
+        display: block;
+        flex: 0 0 auto;
+        background: #1e3c72;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1.2rem;
     }
 }
 
