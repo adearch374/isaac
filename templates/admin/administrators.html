@@ -214,6 +214,7 @@
                             <th>Phone</th>
                             <th>Status</th>
                             <th>Created At</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -226,11 +227,21 @@
                                     <td>{{ admin.phone or '-' }}</td>
                                     <td><span class="status-badge status-{{ 'active' if admin.is_active else 'inactive' }}">{{ 'Active' if admin.is_active else 'Inactive' }}</span></td>
                                     <td>{{ admin.created_at.strftime('%B %d, %Y') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('edit_administrator', admin_id=admin.id) }}" class="add-btn">Edit</a>
+                                        {% if admin.id != current_user.id %}
+                                            <form method="POST" action="{{ url_for('delete_administrator', admin_id=admin.id) }}" style="display: inline;">
+                                                <button type="submit" class="add-btn" style="background: #dc3545;" onclick="return confirm('Delete this administrator?')">Delete</button>
+                                            </form>
+                                        {% else %}
+                                            <span>Current account</span>
+                                        {% endif %}
+                                    </td>
                                 </tr>
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="6" style="text-align: center;">No administrators found</td>
+                                <td colspan="7" style="text-align: center;">No administrators found</td>
                             </tr>
                         {% endif %}
                     </tbody>

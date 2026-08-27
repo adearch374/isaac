@@ -1456,6 +1456,54 @@ def add_administrator():
     
     return render_template('admin/add_administrator.html')
 
+@app.route('/admin/administrators/<int:admin_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_administrator(admin_id):
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+
+    administrator = Admin.query.get_or_404(admin_id)
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        existing_user = User.query.filter(User.username == username, User.id != administrator.id).first()
+        if existing_user:
+            flash('Username already exists', 'error')
+            return redirect(url_for('edit_administrator', admin_id=admin_id))
+
+        administrator.username = username
+        administrator.full_name = request.form.get('full_name', '').strip()
+        administrator.email = request.form.get('email', '').strip()
+        administrator.phone = request.form.get('phone', '').strip()
+        new_password = request.form.get('password', '')
+        if new_password:
+            administrator.password_hash = generate_password_hash(new_password)
+            administrator.must_change_password = True
+
+        log_activity(current_user.id, 'admin_update', 'Admin', admin_id, f'Admin updated administrator {administrator.full_name}')
+        db.session.commit()
+        flash('Administrator updated successfully', 'success')
+        return redirect(url_for('admin_administrators'))
+
+    return render_template('admin/edit_administrator.html', administrator=administrator)
+
+@app.route('/admin/administrators/<int:admin_id>/delete', methods=['POST'])
+@login_required
+def delete_administrator(admin_id):
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    if admin_id == current_user.id:
+        flash('You cannot delete the administrator account you are currently using', 'error')
+        return redirect(url_for('admin_administrators'))
+
+    administrator = Admin.query.get_or_404(admin_id)
+    log_activity(current_user.id, 'admin_delete', 'Admin', admin_id, f'Admin deleted administrator {administrator.full_name}')
+    db.session.delete(administrator)
+    db.session.commit()
+    flash('Administrator deleted successfully', 'success')
+    return redirect(url_for('admin_administrators'))
+
 # Contact Messages - Admin
 @app.route('/admin/messages')
 @login_required
