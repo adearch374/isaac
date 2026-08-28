@@ -1,0 +1,4 @@
+instance/uploads/
+__pycache__/
+*.py[cod]
+.env

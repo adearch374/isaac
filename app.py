@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
+from werkzeug.exceptions import RequestEntityTooLarge
 from datetime import datetime
 from types import SimpleNamespace
 import os
@@ -18,6 +20,14 @@ elif database_url.startswith('postgresql://'):
     database_url = database_url.replace('postgresql://', 'postgresql+pg8000://', 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
+app.config['ASSIGNMENT_UPLOAD_FOLDER'] = os.path.join(app.instance_path, 'uploads')
+os.makedirs(app.config['ASSIGNMENT_UPLOAD_FOLDER'], exist_ok=True)
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_file_too_large(error):
+    flash('The uploaded file is too large. The maximum file size is 10 MB.', 'error')
+    return redirect(request.referrer or url_for('student_assignments'))
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -274,6 +284,36 @@ class ContactMessage(db.Model):
     message = db.Column(db.Text, nullable=False)
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Assignment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    class_id = db.Column(db.Integer, db.ForeignKey('class.id'), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=False)
+    due_date = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    max_score = db.Column(db.Integer, nullable=False, default=100)
+
+    class_assigned = db.relationship('Class', backref='assignments')
+    subject = db.relationship('Subject', backref='assignments')
+    teacher = db.relationship('Teacher', backref='assignments')
+    submissions = db.relationship('Submission', backref='assignment', cascade='all, delete-orphan')
+
+class Submission(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    assignment_id = db.Column(db.Integer, db.ForeignKey('assignment.id'), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
+    text_answer = db.Column(db.Text)
+    file_path = db.Column(db.String(500))
+    submitted_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    score = db.Column(db.Integer)
+    feedback = db.Column(db.Text)
+    graded_at = db.Column(db.DateTime)
+    status = db.Column(db.String(20), nullable=False, default='submitted')
+
+    student = db.relationship('Student', backref='assignment_submissions')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -930,6 +970,215 @@ def submit_teaching_request():
         return redirect(url_for('teacher_requests'))
     
     return render_template('teacher/submit_request.html', teacher=teacher, subjects=subjects, classes=classes)
+
+ALLOWED_ASSIGNMENT_FILES = {
+    'pdf': {'application/pdf'},
+    'doc': {'application/msword', 'application/octet-stream'},
+    'docx': {'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip', 'application/octet-stream'},
+    'jpg': {'image/jpeg'},
+    'jpeg': {'image/jpeg'},
+    'png': {'image/png'}
+}
+
+def get_assignment_file(upload):
+    if not upload or not upload.filename:
+        return None, None
+    filename = secure_filename(upload.filename)
+    extension = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+    if extension not in ALLOWED_ASSIGNMENT_FILES or upload.mimetype not in ALLOWED_ASSIGNMENT_FILES[extension]:
+        return None, 'Only PDF, DOC, DOCX, JPG, and PNG files are allowed.'
+    upload.stream.seek(0)
+    header = upload.stream.read(12)
+    upload.stream.seek(0)
+    valid_header = (
+        (extension == 'pdf' and header.startswith(b'%PDF')) or
+        (extension in {'jpg', 'jpeg'} and header.startswith(b'\xff\xd8\xff')) or
+        (extension == 'png' and header.startswith(b'\x89PNG\r\n\x1a\n')) or
+        (extension in {'doc', 'docx'} and (header.startswith(b'PK') or header.startswith(b'\xd0\xcf\x11\xe0')))
+    )
+    if not valid_header:
+        return None, 'The uploaded file content does not match its file type.'
+    return upload, None
+
+def teacher_has_assignment_access(teacher_id, class_id, subject_id):
+    return TeacherSubjectRequest.query.filter_by(
+        teacher_id=teacher_id, class_id=class_id, subject_id=subject_id, status='approved'
+    ).first() is not None
+
+@app.route('/teacher/assignments')
+@login_required
+def teacher_assignments():
+    if current_user.role != 'teacher':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    assignments = Assignment.query.filter_by(teacher_id=current_user.id).order_by(Assignment.due_date.asc()).all()
+    return render_template('teacher/assignments.html', assignments=assignments)
+
+@app.route('/teacher/assignments/add', methods=['GET', 'POST'])
+@login_required
+def add_assignment():
+    if current_user.role != 'teacher':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    approved_assignments = TeacherSubjectRequest.query.filter_by(teacher_id=current_user.id, status='approved').all()
+    if request.method == 'POST':
+        try:
+            due_date = datetime.strptime(request.form.get('due_date', ''), '%Y-%m-%dT%H:%M')
+            max_score = int(request.form.get('max_score', '100'))
+            class_id = int(request.form.get('class_id'))
+            subject_id = int(request.form.get('subject_id'))
+        except (TypeError, ValueError):
+            flash('Please provide valid class, subject, due date, and score values.', 'error')
+            return redirect(url_for('add_assignment'))
+        if max_score < 1 or not teacher_has_assignment_access(current_user.id, class_id, subject_id):
+            flash('You can only assign approved subjects to approved classes, with a valid maximum score.', 'error')
+            return redirect(url_for('add_assignment'))
+        title = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
+        if not title or not description:
+            flash('Title and description are required.', 'error')
+            return redirect(url_for('add_assignment'))
+        assignment = Assignment(title=title, description=description, class_id=class_id, subject_id=subject_id,
+                                teacher_id=current_user.id, due_date=due_date, max_score=max_score)
+        db.session.add(assignment)
+        db.session.commit()
+        flash('Assignment created successfully.', 'success')
+        return redirect(url_for('teacher_assignments'))
+    return render_template('teacher/add_assignment.html', approved_assignments=approved_assignments)
+
+@app.route('/teacher/assignments/<int:assignment_id>')
+@login_required
+def teacher_assignment_submissions(assignment_id):
+    if current_user.role != 'teacher':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    assignment = Assignment.query.filter_by(id=assignment_id, teacher_id=current_user.id).first_or_404()
+    submissions = Submission.query.filter_by(assignment_id=assignment.id).order_by(Submission.submitted_at.desc()).all()
+    return render_template('teacher/assignment_submissions.html', assignment=assignment, submissions=submissions)
+
+@app.route('/teacher/submissions/<int:submission_id>/grade', methods=['POST'])
+@login_required
+def grade_submission(submission_id):
+    if current_user.role != 'teacher':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    submission = Submission.query.get_or_404(submission_id)
+    if submission.assignment.teacher_id != current_user.id:
+        flash('Access denied', 'error')
+        return redirect(url_for('teacher_assignments'))
+    try:
+        score = int(request.form.get('score', ''))
+    except ValueError:
+        flash('Score must be a whole number.', 'error')
+        return redirect(url_for('teacher_assignment_submissions', assignment_id=submission.assignment_id))
+    if score < 0 or score > submission.assignment.max_score:
+        flash(f'Score must be between 0 and {submission.assignment.max_score}.', 'error')
+        return redirect(url_for('teacher_assignment_submissions', assignment_id=submission.assignment_id))
+    submission.score = score
+    submission.feedback = request.form.get('feedback', '').strip()
+    submission.graded_at = datetime.utcnow()
+    submission.status = 'graded'
+    db.session.commit()
+    flash('Submission graded successfully.', 'success')
+    return redirect(url_for('teacher_assignment_submissions', assignment_id=submission.assignment_id))
+
+@app.route('/teacher/assignments/<int:assignment_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_assignment(assignment_id):
+    if current_user.role != 'teacher':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    assignment = Assignment.query.filter_by(id=assignment_id, teacher_id=current_user.id).first_or_404()
+    if assignment.submissions:
+        flash('Assignments with submissions cannot be edited.', 'error')
+        return redirect(url_for('teacher_assignment_submissions', assignment_id=assignment.id))
+    if request.method == 'POST':
+        try:
+            assignment.due_date = datetime.strptime(request.form.get('due_date', ''), '%Y-%m-%dT%H:%M')
+            assignment.max_score = int(request.form.get('max_score', '100'))
+        except (TypeError, ValueError):
+            flash('Please provide a valid due date and maximum score.', 'error')
+            return redirect(url_for('edit_assignment', assignment_id=assignment.id))
+        assignment.title = request.form.get('title', '').strip()
+        assignment.description = request.form.get('description', '').strip()
+        if not assignment.title or not assignment.description or assignment.max_score < 1:
+            flash('Title, instructions, and a valid maximum score are required.', 'error')
+            return redirect(url_for('edit_assignment', assignment_id=assignment.id))
+        db.session.commit()
+        flash('Assignment updated successfully.', 'success')
+        return redirect(url_for('teacher_assignments'))
+    return render_template('teacher/edit_assignment.html', assignment=assignment)
+
+@app.route('/teacher/assignments/<int:assignment_id>/delete', methods=['POST'])
+@login_required
+def delete_assignment(assignment_id):
+    if current_user.role != 'teacher':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    assignment = Assignment.query.filter_by(id=assignment_id, teacher_id=current_user.id).first_or_404()
+    if assignment.submissions:
+        flash('Assignments with submissions cannot be deleted.', 'error')
+        return redirect(url_for('teacher_assignment_submissions', assignment_id=assignment.id))
+    db.session.delete(assignment)
+    db.session.commit()
+    flash('Assignment deleted successfully.', 'success')
+    return redirect(url_for('teacher_assignments'))
+
+@app.route('/student/assignments')
+@login_required
+def student_assignments():
+    if current_user.role != 'student':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    student = Student.query.get_or_404(current_user.id)
+    assignments = Assignment.query.filter_by(class_id=student.class_id).order_by(Assignment.due_date.asc()).all()
+    return render_template('student/assignments.html', assignments=assignments, student=student, now=datetime.utcnow())
+
+@app.route('/student/assignments/<int:assignment_id>', methods=['GET', 'POST'])
+@login_required
+def student_assignment_detail(assignment_id):
+    if current_user.role != 'student':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    student = Student.query.get_or_404(current_user.id)
+    assignment = Assignment.query.filter_by(id=assignment_id, class_id=student.class_id).first_or_404()
+    submission = Submission.query.filter_by(assignment_id=assignment.id, student_id=student.id).first()
+    if request.method == 'POST':
+        if submission and submission.status == 'graded':
+            flash('This submission has already been graded and cannot be resubmitted.', 'error')
+            return redirect(url_for('student_assignment_detail', assignment_id=assignment.id))
+        text_answer = request.form.get('text_answer', '').strip()
+        upload, file_error = get_assignment_file(request.files.get('file'))
+        if file_error:
+            flash(file_error, 'error')
+            return redirect(url_for('student_assignment_detail', assignment_id=assignment.id))
+        if not text_answer and not upload:
+            flash('Submit a text answer, a file, or both.', 'error')
+            return redirect(url_for('student_assignment_detail', assignment_id=assignment.id))
+        if not submission:
+            submission = Submission(assignment_id=assignment.id, student_id=student.id)
+            db.session.add(submission)
+        if upload:
+            stored_name = f'{student.id}_{assignment.id}_{datetime.utcnow().timestamp()}_{secure_filename(upload.filename)}'
+            upload.save(os.path.join(app.config['ASSIGNMENT_UPLOAD_FOLDER'], stored_name))
+            submission.file_path = stored_name
+        submission.text_answer = text_answer or None
+        submission.submitted_at = datetime.utcnow()
+        submission.status = 'late' if submission.submitted_at > assignment.due_date else 'submitted'
+        db.session.commit()
+        flash('Assignment submitted successfully.', 'success')
+        return redirect(url_for('student_assignment_detail', assignment_id=assignment.id))
+    return render_template('student/assignment_detail.html', assignment=assignment, submission=submission, now=datetime.utcnow())
+
+@app.route('/assignment-files/<path:filename>')
+@login_required
+def assignment_file(filename):
+    submission = Submission.query.filter_by(file_path=filename).first_or_404()
+    if current_user.role == 'teacher' and submission.assignment.teacher_id != current_user.id:
+        return redirect(url_for('index'))
+    if current_user.role == 'student' and submission.student_id != current_user.id:
+        return redirect(url_for('index'))
+    return send_from_directory(app.config['ASSIGNMENT_UPLOAD_FOLDER'], filename, as_attachment=True)
 
 # Results Management - Teachers can enter results for their assigned classes
 @app.route('/teacher/results')
