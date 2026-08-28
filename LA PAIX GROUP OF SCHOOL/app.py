@@ -6,7 +6,9 @@ from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
 from datetime import datetime
 from types import SimpleNamespace
+from sqlalchemy import inspect, text
 import os
+import json
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
@@ -295,6 +297,9 @@ class Assignment(db.Model):
     due_date = db.Column(db.DateTime, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     max_score = db.Column(db.Integer, nullable=False, default=100)
+    question_type = db.Column(db.String(20), nullable=False, default='theory')
+    questions = db.Column(db.Text, nullable=False, default='[]')
+    google_form_url = db.Column(db.String(500))
 
     class_assigned = db.relationship('Class', backref='assignments')
     subject = db.relationship('Subject', backref='assignments')
@@ -312,6 +317,7 @@ class Submission(db.Model):
     feedback = db.Column(db.Text)
     graded_at = db.Column(db.DateTime)
     status = db.Column(db.String(20), nullable=False, default='submitted')
+    answers = db.Column(db.Text, nullable=False, default='{}')
 
     student = db.relationship('Student', backref='assignment_submissions')
 
@@ -956,6 +962,20 @@ def get_assignment_file(upload):
 def teacher_has_assignment_access(teacher_id, class_id, subject_id):
     return TeacherSubjectRequest.query.filter_by(teacher_id=teacher_id, class_id=class_id, subject_id=subject_id, status='approved').first() is not None
 
+def parse_assignment_questions(form):
+    question_type = form.get('question_type', 'theory')
+    if question_type not in {'theory', 'multiple_choice'}: return None, 'Choose either theory or multiple-choice questions.'
+    try: questions = json.loads(form.get('questions_json', '[]'))
+    except json.JSONDecodeError: return None, 'Please enter valid assignment questions.'
+    if not isinstance(questions, list) or not questions: return None, 'Add at least one question.'
+    cleaned = []
+    for question in questions:
+        text = str(question.get('text', '')).strip(); options = [str(option).strip() for option in question.get('options', []) if str(option).strip()]; answer = str(question.get('answer', '')).strip()
+        if not text: return None, 'Every question needs text.'
+        if question_type == 'multiple_choice' and (len(options) < 2 or answer not in options): return None, 'Each multiple-choice question needs options and a valid correct answer.'
+        cleaned.append({'text': text, 'options': options if question_type == 'multiple_choice' else [], 'answer': answer if question_type == 'multiple_choice' else ''})
+    return {'type': question_type, 'questions': cleaned}, None
+
 @app.route('/teacher/assignments')
 @login_required
 def teacher_assignments():
@@ -981,7 +1001,10 @@ def add_assignment():
         title = request.form.get('title', '').strip(); description = request.form.get('description', '').strip()
         if not title or not description:
             flash('Title and description are required.', 'error'); return redirect(url_for('add_assignment'))
-        db.session.add(Assignment(title=title, description=description, class_id=class_id, subject_id=subject_id, teacher_id=current_user.id, due_date=due_date, max_score=max_score))
+        question_data, question_error = parse_assignment_questions(request.form)
+        if question_error: flash(question_error, 'error'); return redirect(url_for('add_assignment'))
+        google_form_url = request.form.get('google_form_url', '').strip()
+        db.session.add(Assignment(title=title, description=description, class_id=class_id, subject_id=subject_id, teacher_id=current_user.id, due_date=due_date, max_score=max_score, question_type=question_data['type'], questions=json.dumps(question_data['questions']), google_form_url=google_form_url or None))
         db.session.commit(); flash('Assignment created successfully.', 'success'); return redirect(url_for('teacher_assignments'))
     return render_template('teacher/add_assignment.html', approved_assignments=approved_assignments)
 
@@ -1048,19 +1071,23 @@ def student_assignments():
 def student_assignment_detail(assignment_id):
     if current_user.role != 'student':
         flash('Access denied', 'error'); return redirect(url_for('index'))
-    student = Student.query.get_or_404(current_user.id); assignment = Assignment.query.filter_by(id=assignment_id, class_id=student.class_id).first_or_404(); submission = Submission.query.filter_by(assignment_id=assignment.id, student_id=student.id).first()
+    student = Student.query.get_or_404(current_user.id); assignment = Assignment.query.filter_by(id=assignment_id, class_id=student.class_id).first_or_404(); submission = Submission.query.filter_by(assignment_id=assignment.id, student_id=student.id).first(); questions = json.loads(assignment.questions or '[]')
     if request.method == 'POST':
         if submission and submission.status == 'graded':
             flash('This submission has already been graded and cannot be resubmitted.', 'error'); return redirect(url_for('student_assignment_detail', assignment_id=assignment.id))
-        text_answer = request.form.get('text_answer', '').strip(); upload, file_error = get_assignment_file(request.files.get('file'))
+        text_answer = request.form.get('text_answer', '').strip(); answers = {str(index): request.form.get(f'answer_{index}', '') for index in range(len(questions))}; upload, file_error = get_assignment_file(request.files.get('file'))
         if file_error: flash(file_error, 'error'); return redirect(url_for('student_assignment_detail', assignment_id=assignment.id))
-        if not text_answer and not upload: flash('Submit a text answer, a file, or both.', 'error'); return redirect(url_for('student_assignment_detail', assignment_id=assignment.id))
+        if assignment.question_type == 'multiple_choice' and not any(answers.values()) and not upload: flash('Answer at least one question or attach a file.', 'error'); return redirect(url_for('student_assignment_detail', assignment_id=assignment.id))
+        if assignment.question_type == 'theory' and not text_answer and not upload: flash('Submit a text answer, a file, or both.', 'error'); return redirect(url_for('student_assignment_detail', assignment_id=assignment.id))
         if not submission: submission = Submission(assignment_id=assignment.id, student_id=student.id); db.session.add(submission)
         if upload:
             stored_name = f'{student.id}_{assignment.id}_{datetime.utcnow().timestamp()}_{secure_filename(upload.filename)}'; upload.save(os.path.join(app.config['ASSIGNMENT_UPLOAD_FOLDER'], stored_name)); submission.file_path = stored_name
-        submission.text_answer = text_answer or None; submission.submitted_at = datetime.utcnow(); submission.status = 'late' if submission.submitted_at > assignment.due_date else 'submitted'; db.session.commit()
+        submission.text_answer = text_answer or None; submission.answers = json.dumps(answers); submission.submitted_at = datetime.utcnow(); submission.status = 'late' if submission.submitted_at > assignment.due_date else 'submitted'
+        if assignment.question_type == 'multiple_choice':
+            correct = sum(answers.get(str(index)) == question.get('answer') for index, question in enumerate(questions)); submission.score = round((correct / len(questions)) * assignment.max_score); submission.status = 'graded'; submission.graded_at = datetime.utcnow(); submission.feedback = f'Automatically graded: {correct} of {len(questions)} correct.'
+        db.session.commit()
         flash('Assignment submitted successfully.', 'success'); return redirect(url_for('student_assignment_detail', assignment_id=assignment.id))
-    return render_template('student/assignment_detail.html', assignment=assignment, submission=submission, now=datetime.utcnow())
+    return render_template('student/assignment_detail.html', assignment=assignment, submission=submission, questions=questions, now=datetime.utcnow())
 
 @app.route('/assignment-files/<path:filename>')
 @login_required
@@ -2060,6 +2087,15 @@ def calculate_remark(grade):
 def init_db():
     with app.app_context():
         db.create_all()
+        assignment_columns = {column['name'] for column in inspect(db.engine).get_columns('assignment')}
+        submission_columns = {column['name'] for column in inspect(db.engine).get_columns('submission')}
+        upgrades = {'assignment': {'question_type': "VARCHAR(20) NOT NULL DEFAULT 'theory'", 'questions': "TEXT NOT NULL DEFAULT '[]'", 'google_form_url': 'VARCHAR(500)'}, 'submission': {'answers': "TEXT NOT NULL DEFAULT '{}'"}}
+        for table, columns in upgrades.items():
+            existing = assignment_columns if table == 'assignment' else submission_columns
+            for column, definition in columns.items():
+                if column not in existing:
+                    db.session.execute(text(f'ALTER TABLE {table} ADD COLUMN {column} {definition}'))
+        db.session.commit()
         
         # Create default admin accounts if they don't exist
         if Admin.query.count() == 0:
