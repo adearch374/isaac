@@ -35,6 +35,10 @@
     <!-- Hero Section -->
     <section id="home" class="hero">
         <div class="hero-content">
+            <div class="hero-brand-mark">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="La Paix Group of Schools crest" class="hero-logo">
+                <span>LA PAIX GROUP OF SCHOOLS</span>
+            </div>
             <h1>Welcome to La Paix Group of Schools</h1>
             <p>Nurturing Minds, Building Futures</p>
             <p class="hero-subtitle">Providing quality education with a focus on academic excellence, character development, and holistic growth</p>
@@ -67,8 +71,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="about-image">
-                    <div class="placeholder-image">School Campus Image</div>
+                    <div class="about-image">
+                        <div class="campus-placeholder">
+                            <div class="campus-placeholder-glow"></div>
+                            <img src="{{ url_for('static', filename='logo.png') }}" alt="La Paix Group of Schools logo" class="campus-logo">
+                            <span class="campus-placeholder-label">Our campus story</span>
+                            <strong>Growing with purpose</strong>
+                            <small>School photos coming soon</small>
+                        </div>
                 </div>
             </div>
         </div>

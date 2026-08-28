@@ -329,6 +329,153 @@ body {
     padding: 20px;
 }
 
+/* Homepage identity and photo-ready visual treatment. */
+.hero {
+    text-align: left;
+    min-height: 78vh;
+    padding: 90px 20px;
+    background: linear-gradient(120deg, #173f72 0%, #286b9c 52%, #d08b2e 140%);
+}
+
+.hero::after {
+    content: '';
+    position: absolute;
+    right: -10vw;
+    bottom: -28vw;
+    width: 55vw;
+    height: 55vw;
+    border: 1px solid rgba(255, 215, 0, 0.35);
+    border-radius: 50%;
+    box-shadow: 0 0 0 40px rgba(255, 255, 255, 0.04), 0 0 0 80px rgba(255, 255, 255, 0.03);
+}
+
+.hero-content {
+    max-width: 760px;
+}
+
+.hero-brand-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    color: #ffd76a;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+}
+
+.hero-logo {
+    width: 58px;
+    height: 58px;
+    object-fit: cover;
+    border: 3px solid #ffd76a;
+    border-radius: 50%;
+    background: white;
+    padding: 4px;
+}
+
+.hero h1 {
+    max-width: 720px;
+    font-size: clamp(2.5rem, 6vw, 4.8rem);
+    line-height: 1.05;
+    text-align: left;
+}
+
+.hero > .hero-content > p:first-of-type {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    color: #ffd76a;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.hero > .hero-content > p.hero-subtitle {
+    max-width: 630px;
+}
+
+.campus-placeholder {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    max-width: 500px;
+    min-height: 400px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 40px 24px;
+    color: white;
+    text-align: center;
+    border: 8px solid white;
+    border-radius: 28px 28px 28px 6px;
+    background: linear-gradient(145deg, #173f72 0%, #286b9c 58%, #d08b2e 150%);
+    box-shadow: 20px 24px 0 rgba(208, 139, 46, 0.18), 0 24px 60px rgba(23, 63, 114, 0.28);
+}
+
+.campus-placeholder::before,
+.campus-placeholder::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 50%;
+}
+
+.campus-placeholder::before {
+    width: 280px;
+    height: 280px;
+    top: -150px;
+    right: -90px;
+}
+
+.campus-placeholder::after {
+    width: 210px;
+    height: 210px;
+    bottom: -120px;
+    left: -80px;
+}
+
+.campus-placeholder-glow {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: rgba(255, 215, 0, 0.22);
+    filter: blur(35px);
+}
+
+.campus-logo {
+    position: relative;
+    width: 128px;
+    height: 128px;
+    object-fit: cover;
+    border: 6px solid white;
+    border-radius: 50%;
+    background: white;
+    padding: 8px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.campus-placeholder-label {
+    margin-top: 14px;
+    color: #ffd76a;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.campus-placeholder strong {
+    font-size: 1.8rem;
+}
+
+.campus-placeholder small {
+    color: rgba(255, 255, 255, 0.78);
+}
+
 /* Vision & Mission Section */
 .vision-mission {
     padding: 100px 20px;
