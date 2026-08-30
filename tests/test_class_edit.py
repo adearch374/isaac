@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from app import app, db, Class, User, generate_password_hash
 
@@ -59,6 +60,28 @@ class ClassEditRouteTests(unittest.TestCase):
             self.assertEqual(updated_class.level, 'Senior Secondary')
             self.assertEqual(updated_class.capacity, 45)
             self.assertTrue(updated_class.is_active)
+
+    def test_add_subject_logs_without_nested_commit(self):
+        with self.client.session_transaction() as session:
+            session['_user_id'] = str(self.admin_id)
+            session['_fresh'] = True
+
+        with patch('app.log_activity') as mock_log_activity:
+            response = self.client.post(
+                '/admin/subjects/add',
+                data={
+                    'class_id': str(self.class_id),
+                    'name': 'Mathematics',
+                    'code': 'MATH',
+                    'description': 'Core subject',
+                },
+                follow_redirects=False,
+            )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/admin/subjects', response.headers.get('Location', ''))
+        mock_log_activity.assert_called_once()
+        self.assertEqual(mock_log_activity.call_args.kwargs.get('commit'), False)
 
 
 if __name__ == '__main__':

@@ -795,7 +795,7 @@ def add_class():
         )
         
         db.session.add(new_class)
-        log_activity(current_user.id, 'class_create', 'Class', new_class.id, f'Admin created class {new_class.name}')
+        log_activity(current_user.id, 'class_create', 'Class', new_class.id, f'Admin created class {new_class.name}', commit=False)
         db.session.commit()
         
         flash('Class created successfully', 'success')
@@ -906,7 +906,7 @@ def add_subject():
 
         class_name = Class.query.get(class_id).name if Class.query.get(class_id) else 'Unknown class'
         log_activity(current_user.id, 'subject_create', 'Subject', new_subject.id,
-                     f'Admin created subject {new_subject.name} for class {class_name}')
+                     f'Admin created subject {new_subject.name} for class {class_name}', commit=False)
         db.session.commit()
         
         flash('Subject created successfully', 'success')
@@ -2227,7 +2227,7 @@ def view_event(event_id):
     return render_template('public/event_detail.html', event=event)
 
 # Helper Functions
-def log_activity(user_id, action, entity_type, entity_id, details):
+def log_activity(user_id, action, entity_type, entity_id, details, commit=True):
     log = ActivityLog(
         user_id=user_id,
         action=action,
@@ -2236,7 +2236,10 @@ def log_activity(user_id, action, entity_type, entity_id, details):
         details=details
     )
     db.session.add(log)
-    db.session.commit()
+    if commit:
+        db.session.commit()
+    else:
+        db.session.flush()
 
 def create_notification(user_ids, title, message, notification_type, related_id=None):
     """Create notifications for multiple users"""
