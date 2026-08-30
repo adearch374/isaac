@@ -816,7 +816,11 @@ def add_subject():
         )
 
         db.session.add(new_subject)
-        log_activity(current_user.id, 'subject_create', 'Subject', new_subject.id, f'Admin created subject {new_subject.name} for class {new_subject.class_assigned.name}')
+        db.session.flush()
+
+        class_name = Class.query.get(class_id).name if Class.query.get(class_id) else 'Unknown class'
+        log_activity(current_user.id, 'subject_create', 'Subject', new_subject.id,
+                     f'Admin created subject {new_subject.name} for class {class_name}')
         db.session.commit()
 
         flash('Subject created successfully', 'success')
