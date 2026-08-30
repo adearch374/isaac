@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Detail - La Paix Group of Schools</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 15px;
+            background:#6c757d;color:white;padding:8px 12px;border-radius:4px;text-decoration:none;
+        }
+        .message-body {
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('admin_messages') }}" class="back-link">← Back to Messages</a>
+        <h2>Message from {{ message.name }}</h2>
+
+        <div class="meta">
+            <div><strong>Email:</strong> {{ message.email }}</div>
+            <div><strong>Phone:</strong> {{ message.phone or '-' }}</div>
+            <div><strong>Date:</strong> {{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+            <div><strong>Status:</strong>
+                {% if message.is_read %}
+                    <span style="color:#28a745;">Read</span>
+                {% else %}
+                    <span style="color:#ffc107;font-weight:600;">Unread</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="message-body">
+            {{ message.message }}
+        </div>
+
+        <div style="margin-top:20px;">
+            {% if not message.is_read %}
+                <form method="POST" action="{{ url_for('mark_message_read', message_id=message.id) }}" style="display:inline-block;margin-right:10px;">
+                    <button type="submit" class="action-btn mark-read-btn">Mark Read</button>
+                </form>
+            {% endif %}
+            <form method="POST" action="{{ url_for('delete_message', message_id=message.id) }}" style="display:inline-block;">
+                <button type="submit" class="action-btn delete-btn" onclick="return confirm('Are you sure you want to delete this message?')">Delete</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

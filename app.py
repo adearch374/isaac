@@ -42,7 +42,23 @@ def inject_datetime():
     return dict(datetime=datetime)
 
 @app.after_request
-def add_mobile_sidebar_script(response):
+def add_security_headers(response):
+    if response.content_type and 'text/html' in response.content_type:
+        csp = (
+            "default-src 'self'; "
+            "base-uri 'self'; "
+            "frame-ancestors 'none'; "
+            "object-src 'none'; "
+            "img-src 'self' data:; "
+            "style-src 'self' 'unsafe-inline'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "connect-src 'self'; "
+            "font-src 'self' data:; "
+            "form-action 'self'; "
+            "upgrade-insecure-requests"
+        )
+        response.headers['Content-Security-Policy'] = csp
+
     if response.content_type.startswith('text/html'):
         html = response.get_data(as_text=True)
         script_tag = '<script src="/static/mobile-sidebar.js"></script>'
@@ -2108,6 +2124,22 @@ def delete_message(message_id):
     db.session.commit()
     flash('Message deleted successfully', 'success')
     return redirect(url_for('admin_messages'))
+
+
+@app.route('/admin/messages/<int:message_id>')
+@login_required
+def view_message(message_id):
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+
+    message = ContactMessage.query.get_or_404(message_id)
+    # mark as read when viewed
+    if not message.is_read:
+        message.is_read = True
+        db.session.commit()
+
+    return render_template('admin/message_detail.html', message=message)
 
 @app.route('/admin/events/<int:event_id>/publish', methods=['POST'])
 @login_required

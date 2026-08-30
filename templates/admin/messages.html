@@ -250,6 +250,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
+                                        <a href="{{ url_for('view_message', message_id=msg.id) }}" class="action-btn" style="background:#007bff;color:white;text-decoration:none;display:inline-block;padding:6px 10px;border-radius:3px;margin-right:5px;">View</a>
                                         {% if not msg.is_read %}
                                             <form method="POST" action="{{ url_for('mark_message_read', message_id=msg.id) }}" style="display: inline;">
                                                 <button type="submit" class="action-btn mark-read-btn">Mark Read</button>

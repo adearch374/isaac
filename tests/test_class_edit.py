@@ -83,6 +83,14 @@ class ClassEditRouteTests(unittest.TestCase):
         mock_log_activity.assert_called_once()
         self.assertEqual(mock_log_activity.call_args.kwargs.get('commit'), False)
 
+    def test_site_sets_csp_without_unsafe_eval(self):
+        response = self.client.get('/')
+
+        self.assertEqual(response.status_code, 200)
+        csp = response.headers.get('Content-Security-Policy', '')
+        self.assertIn("script-src", csp)
+        self.assertNotIn('unsafe-eval', csp.lower())
+
 
 if __name__ == '__main__':
     unittest.main()
