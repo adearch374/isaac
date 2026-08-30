@@ -611,7 +611,7 @@ def add_student():
         )
         
         db.session.add(student)
-        log_activity(current_user.id, 'student_create', 'Student', student.id, f'Admin created student {student.full_name}')
+        log_activity(current_user.id, 'student_create', 'Student', student.id, f'Admin created student {student.full_name}', commit=False)
         db.session.commit()
         
         flash(f'Student created successfully. Username: {username}, LIN: {lin}', 'success')
@@ -716,7 +716,7 @@ def add_teacher():
         )
         
         db.session.add(teacher)
-        log_activity(current_user.id, 'teacher_create', 'Teacher', teacher.id, f'Admin created teacher {teacher.full_name}')
+        log_activity(current_user.id, 'teacher_create', 'Teacher', teacher.id, f'Admin created teacher {teacher.full_name}', commit=False)
         db.session.commit()
         
         flash(f'Teacher created successfully. Username: {username}, Teacher ID: {teacher_id}', 'success')
@@ -1659,7 +1659,7 @@ def add_attendance():
             )
             db.session.add(attendance)
         
-        log_activity(current_user.id, 'attendance_create', 'Attendance', class_id, f'Admin recorded attendance for class {class_id} on {date}')
+        log_activity(current_user.id, 'attendance_create', 'Attendance', class_id, f'Admin recorded attendance for class {class_id} on {date}', commit=False)
         db.session.commit()
         flash('Attendance recorded successfully', 'success')
         return redirect(url_for('admin_attendance'))
@@ -1701,7 +1701,7 @@ def add_timetable():
         )
         
         db.session.add(new_entry)
-        log_activity(current_user.id, 'timetable_create', 'Timetable', new_entry.id, f'Admin added timetable entry')
+        log_activity(current_user.id, 'timetable_create', 'Timetable', new_entry.id, f'Admin added timetable entry', commit=False)
         db.session.commit()
         flash('Timetable entry added successfully', 'success')
         return redirect(url_for('admin_timetable'))
@@ -1744,7 +1744,7 @@ def add_academic_session():
         )
         
         db.session.add(new_session)
-        log_activity(current_user.id, 'session_create', 'AcademicSession', new_session.id, f'Admin created academic session {name}')
+        log_activity(current_user.id, 'session_create', 'AcademicSession', new_session.id, f'Admin created academic session {name}', commit=False)
         db.session.commit()
         flash('Academic session created successfully', 'success')
         return redirect(url_for('admin_academic_sessions'))
@@ -1766,7 +1766,7 @@ def activate_session(session_id):
     # Activate selected session
     session.is_active = True
     
-    log_activity(current_user.id, 'session_activate', 'AcademicSession', session_id, f'Admin activated session {session.name}')
+    log_activity(current_user.id, 'session_activate', 'AcademicSession', session_id, f'Admin activated session {session.name}', commit=False)
     db.session.commit()
     flash(f'Academic session {session.name} activated successfully', 'success')
     return redirect(url_for('admin_academic_sessions'))
@@ -1800,7 +1800,7 @@ def add_term():
         )
         
         db.session.add(new_term)
-        log_activity(current_user.id, 'term_create', 'Term', new_term.id, f'Admin created term {new_term.name}')
+        log_activity(current_user.id, 'term_create', 'Term', new_term.id, f'Admin created term {new_term.name}', commit=False)
         db.session.commit()
         flash('Term created successfully', 'success')
         return redirect(url_for('admin_terms'))
@@ -1823,7 +1823,7 @@ def activate_term(term_id):
     # Activate selected term
     term.is_active = True
     
-    log_activity(current_user.id, 'term_activate', 'Term', term_id, f'Admin activated term {term.name}')
+    log_activity(current_user.id, 'term_activate', 'Term', term_id, f'Admin activated term {term.name}', commit=False)
     db.session.commit()
     flash(f'Term {term.name} activated successfully', 'success')
     return redirect(url_for('admin_terms'))
@@ -1863,7 +1863,7 @@ def add_administrator():
         )
         
         db.session.add(admin)
-        log_activity(current_user.id, 'admin_create', 'Admin', admin.id, f'Admin created administrator {admin.full_name}')
+        log_activity(current_user.id, 'admin_create', 'Admin', admin.id, f'Admin created administrator {admin.full_name}', commit=False)
         db.session.commit()
         flash('Administrator created successfully', 'success')
         return redirect(url_for('admin_administrators'))
@@ -2017,7 +2017,7 @@ def publish_news(news_id):
         related_id=news.id
     )
     
-    log_activity(current_user.id, 'news_publish', 'News', news_id, f'Admin published news: {news.title}')
+    log_activity(current_user.id, 'news_publish', 'News', news_id, f'Admin published news: {news.title}', commit=False)
     db.session.commit()
     flash('News article published successfully', 'success')
     return redirect(url_for('admin_news'))
@@ -2128,7 +2128,7 @@ def publish_event(event_id):
         related_id=event.id
     )
     
-    log_activity(current_user.id, 'event_publish', 'Event', event_id, f'Admin published event: {event.title}')
+    log_activity(current_user.id, 'event_publish', 'Event', event_id, f'Admin published event: {event.title}', commit=False)
     db.session.commit()
     flash('Event published successfully', 'success')
     return redirect(url_for('admin_events'))
