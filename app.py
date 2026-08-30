@@ -122,11 +122,19 @@ class Class(db.Model):
 
 class Subject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-    code = db.Column(db.String(20), unique=True, nullable=False)
+    class_id = db.Column(db.Integer, db.ForeignKey('class.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    code = db.Column(db.String(20), nullable=False)
     description = db.Column(db.Text)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    class_assigned = db.relationship('Class', backref='subjects')
+
+    __table_args__ = (
+        db.UniqueConstraint('class_id', 'name', name='uq_subject_name_per_class'),
+        db.UniqueConstraint('class_id', 'code', name='uq_subject_code_per_class'),
+    )
 
 class TeacherSubjectRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -795,6 +803,56 @@ def add_class():
     
     return render_template('admin/add_class.html')
 
+@app.route('/admin/classes/<int:class_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_class(class_id):
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+
+    school_class = Class.query.get_or_404(class_id)
+
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        if not name:
+            flash('Class name is required', 'error')
+            return redirect(url_for('edit_class', class_id=class_id))
+
+        existing_class = Class.query.filter(Class.id != class_id, Class.name == name).first()
+        if existing_class:
+            flash('Class name already exists', 'error')
+            return redirect(url_for('edit_class', class_id=class_id))
+
+        school_class.name = name
+        school_class.level = request.form.get('level')
+        school_class.capacity = request.form.get('capacity', school_class.capacity)
+        school_class.is_active = 'is_active' in request.form
+
+        log_activity(current_user.id, 'class_update', 'Class', class_id,
+                     f'Admin updated class {school_class.name}')
+        db.session.commit()
+
+        flash('Class updated successfully', 'success')
+        return redirect(url_for('admin_classes'))
+
+    return render_template('admin/edit_class.html', school_class=school_class)
+
+@app.route('/admin/classes/<int:class_id>/delete', methods=['POST'])
+@login_required
+def delete_class(class_id):
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+
+    school_class = Class.query.get_or_404(class_id)
+    log_activity(current_user.id, 'class_delete', 'Class', class_id,
+                 f'Admin deleted class {school_class.name}')
+    db.session.delete(school_class)
+    db.session.commit()
+
+    flash('Class deleted successfully', 'success')
+    return redirect(url_for('admin_classes'))
+
 # Subject Management
 @app.route('/admin/subjects')
 @login_required
@@ -812,33 +870,41 @@ def add_subject():
     if current_user.role != 'admin':
         flash('Access denied', 'error')
         return redirect(url_for('index'))
+
+    classes = Class.query.filter_by(is_active=True).all()
     
     if request.method == 'POST':
         name = request.form.get('name')
         code = request.form.get('code')
-        
-        if Subject.query.filter_by(name=name).first():
-            flash('Subject name already exists', 'error')
+        class_id = request.form.get('class_id')
+
+        if not class_id:
+            flash('Please select a class for this subject.', 'error')
             return redirect(url_for('add_subject'))
         
-        if Subject.query.filter_by(code=code).first():
-            flash('Subject code already exists', 'error')
+        if Subject.query.filter_by(class_id=class_id, name=name).first():
+            flash('This subject name already exists for the selected class.', 'error')
+            return redirect(url_for('add_subject'))
+        
+        if Subject.query.filter_by(class_id=class_id, code=code).first():
+            flash('This subject code already exists for the selected class.', 'error')
             return redirect(url_for('add_subject'))
         
         new_subject = Subject(
+            class_id=class_id,
             name=name,
             code=code,
             description=request.form.get('description')
         )
         
         db.session.add(new_subject)
-        log_activity(current_user.id, 'subject_create', 'Subject', new_subject.id, f'Admin created subject {new_subject.name}')
+        log_activity(current_user.id, 'subject_create', 'Subject', new_subject.id, f'Admin created subject {new_subject.name} for class {new_subject.class_assigned.name}')
         db.session.commit()
         
         flash('Subject created successfully', 'success')
         return redirect(url_for('admin_subjects'))
     
-    return render_template('admin/add_subject.html')
+    return render_template('admin/add_subject.html', classes=classes)
 
 # Student Routes
 @app.route('/student/dashboard')
@@ -2218,6 +2284,24 @@ def calculate_remark(grade):
 def init_db():
     with app.app_context():
         db.create_all()
+
+        subject_columns = {column['name'] for column in inspect(db.engine).get_columns('subject')}
+        if 'class_id' not in subject_columns:
+            db.session.execute(text('ALTER TABLE subject ADD COLUMN class_id INTEGER'))
+            db.session.commit()
+
+            first_class = Class.query.order_by(Class.id.asc()).first()
+            if first_class:
+                db.session.execute(
+                    text('UPDATE subject SET class_id = :class_id WHERE class_id IS NULL'),
+                    {'class_id': first_class.id}
+                )
+
+        try:
+            db.session.execute(text('ALTER TABLE subject ALTER COLUMN class_id SET NOT NULL'))
+        except Exception:
+            pass
+
         assignment_columns = {column['name'] for column in inspect(db.engine).get_columns('assignment')}
         submission_columns = {column['name'] for column in inspect(db.engine).get_columns('submission')}
         upgrades = {
