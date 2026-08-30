@@ -309,6 +309,7 @@
 <table class="subjects-table">
                     <thead>
                         <tr>
+                            <th>Class</th>
                             <th>Subject Code</th>
                             <th>Subject Name</th>
                             <th>Description</th>
@@ -319,6 +320,7 @@
                     <tbody>
                         {% for subject in subjects %}
                             <tr>
+                                <td>{{ subject.class_assigned.name if subject.class_assigned else 'Unassigned' }}</td>
                                 <td>{{ subject.code }}</td>
                                 <td>{{ subject.name }}</td>
                                 <td>{{ subject.description or '-' }}</td>
