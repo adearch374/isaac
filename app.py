@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
 from datetime import datetime
+from sqlalchemy.exc import IntegrityError
 from types import SimpleNamespace
 from sqlalchemy import inspect, text
 import os
@@ -898,6 +899,17 @@ def add_subject():
         code = request.form.get('code')
         class_id = request.form.get('class_id')
 
+        # Basic validation
+        if not name or not code:
+            flash('Please provide both subject name and code.', 'error')
+            return redirect(url_for('add_subject'))
+
+        try:
+            class_id = int(class_id)
+        except (TypeError, ValueError):
+            flash('Please select a valid class for this subject.', 'error')
+            return redirect(url_for('add_subject'))
+
         if not class_id:
             flash('Please select a class for this subject.', 'error')
             return redirect(url_for('add_subject'))
@@ -917,14 +929,24 @@ def add_subject():
             description=request.form.get('description')
         )
         
-        db.session.add(new_subject)
-        db.session.flush()
+        try:
+            db.session.add(new_subject)
+            db.session.flush()
 
-        class_name = Class.query.get(class_id).name if Class.query.get(class_id) else 'Unknown class'
-        log_activity(current_user.id, 'subject_create', 'Subject', new_subject.id,
-                     f'Admin created subject {new_subject.name} for class {class_name}', commit=False)
-        db.session.commit()
-        
+            class_name = Class.query.get(class_id).name if Class.query.get(class_id) else 'Unknown class'
+            log_activity(current_user.id, 'subject_create', 'Subject', new_subject.id,
+                         f'Admin created subject {new_subject.name} for class {class_name}', commit=False)
+            db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()
+            # Log internally if logger exists; for now flash a user-friendly message
+            flash('Unable to create subject due to a database constraint. Please check your inputs.', 'error')
+            return redirect(url_for('add_subject'))
+        except Exception:
+            db.session.rollback()
+            flash('An unexpected error occurred while creating the subject.', 'error')
+            return redirect(url_for('add_subject'))
+
         flash('Subject created successfully', 'success')
         return redirect(url_for('admin_subjects'))
     
