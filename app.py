@@ -871,7 +871,11 @@ def add_subject():
         flash('Access denied', 'error')
         return redirect(url_for('index'))
 
-    classes = Class.query.filter_by(is_active=True).all()
+    classes = Class.query.order_by(Class.name).all()
+
+    if request.method == 'GET' and not classes:
+        flash('No classes exist yet. Please create a class before adding a subject.', 'error')
+        return redirect(url_for('add_class'))
     
     if request.method == 'POST':
         name = request.form.get('name')
