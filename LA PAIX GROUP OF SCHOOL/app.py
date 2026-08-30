@@ -776,33 +776,45 @@ def add_subject():
     if current_user.role != 'admin':
         flash('Access denied', 'error')
         return redirect(url_for('index'))
-    
+
+    classes = Class.query.order_by(Class.name).all()
+
+    if request.method == 'GET' and not classes:
+        flash('No classes exist yet. Please create a class before adding a subject.', 'error')
+        return redirect(url_for('add_class'))
+
     if request.method == 'POST':
         name = request.form.get('name')
         code = request.form.get('code')
-        
-        if Subject.query.filter_by(name=name).first():
-            flash('Subject name already exists', 'error')
+        class_id = request.form.get('class_id')
+
+        if not class_id:
+            flash('Please select a class for this subject.', 'error')
             return redirect(url_for('add_subject'))
-        
-        if Subject.query.filter_by(code=code).first():
-            flash('Subject code already exists', 'error')
+
+        if Subject.query.filter_by(class_id=class_id, name=name).first():
+            flash('This subject name already exists for the selected class.', 'error')
             return redirect(url_for('add_subject'))
-        
+
+        if Subject.query.filter_by(class_id=class_id, code=code).first():
+            flash('This subject code already exists for the selected class.', 'error')
+            return redirect(url_for('add_subject'))
+
         new_subject = Subject(
+            class_id=class_id,
             name=name,
             code=code,
             description=request.form.get('description')
         )
-        
+
         db.session.add(new_subject)
-        log_activity(current_user.id, 'subject_create', 'Subject', new_subject.id, f'Admin created subject {new_subject.name}')
+        log_activity(current_user.id, 'subject_create', 'Subject', new_subject.id, f'Admin created subject {new_subject.name} for class {new_subject.class_assigned.name}')
         db.session.commit()
-        
+
         flash('Subject created successfully', 'success')
         return redirect(url_for('admin_subjects'))
-    
-    return render_template('admin/add_subject.html')
+
+    return render_template('admin/add_subject.html', classes=classes)
 
 # Student Routes
 @app.route('/student/dashboard')

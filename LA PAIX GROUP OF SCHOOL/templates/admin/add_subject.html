@@ -266,6 +266,16 @@
 
                 <form method="POST" action="{{ url_for('add_subject') }}">
                     <div class="form-group">
+                        <label for="class_id">Class *</label>
+                        <select id="class_id" name="class_id" required>
+                            <option value="">Select a class</option>
+                            {% for class in classes %}
+                                <option value="{{ class.id }}">{{ class.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
                         <label for="name">Subject Name *</label>
                         <input type="text" id="name" name="name" required placeholder="e.g., Mathematics">
                     </div>
