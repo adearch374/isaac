@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Subject - La Paix Group of Schools</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .form-card { max-width: 600px; margin: 40px auto; background:white;padding:20px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);} 
+        .form-group { margin-bottom: 15px; }
+        .form-actions { display:flex; gap:10px; justify-content:flex-end; }
+        .btn { padding:10px 18px; border-radius:6px; border:none; cursor:pointer; }
+        .btn-success{background:#28a745;color:white;} .btn-secondary{background:#6c757d;color:white}
+    </style>
+</head>
+<body>
+    <div class="form-card">
+        <h2>Edit Subject</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('edit_subject', subject_id=subject.id) }}">
+            <div class="form-group">
+                <label for="class_id">Class *</label>
+                <select id="class_id" name="class_id" required>
+                    <option value="">Select a class</option>
+                    {% for c in classes %}
+                        <option value="{{ c.id }}" {% if subject.class_id==c.id %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="name">Subject Name *</label>
+                <input type="text" id="name" name="name" required value="{{ subject.name }}">
+            </div>
+
+            <div class="form-group">
+                <label for="code">Subject Code *</label>
+                <input type="text" id="code" name="code" required value="{{ subject.code }}">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="4">{{ subject.description }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label><input type="checkbox" name="is_active" {% if subject.is_active %}checked{% endif %}> Active</label>
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ url_for('admin_subjects') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-success">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

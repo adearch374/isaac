@@ -952,6 +952,86 @@ def add_subject():
     
     return render_template('admin/add_subject.html', classes=classes)
 
+
+# Edit Subject
+@app.route('/admin/subjects/<int:subject_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_subject(subject_id):
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+
+    subject = Subject.query.get_or_404(subject_id)
+    classes = Class.query.order_by(Class.name).all()
+
+    if request.method == 'POST':
+        name = request.form.get('name')
+        code = request.form.get('code')
+        class_id = request.form.get('class_id')
+
+        if not name or not code:
+            flash('Please provide both subject name and code.', 'error')
+            return redirect(url_for('edit_subject', subject_id=subject_id))
+
+        try:
+            class_id = int(class_id)
+        except (TypeError, ValueError):
+            flash('Please select a valid class for this subject.', 'error')
+            return redirect(url_for('edit_subject', subject_id=subject_id))
+
+        # Check uniqueness constraints excluding current subject
+        existing_name = Subject.query.filter(Subject.class_id == class_id, Subject.name == name, Subject.id != subject_id).first()
+        if existing_name:
+            flash('This subject name already exists for the selected class.', 'error')
+            return redirect(url_for('edit_subject', subject_id=subject_id))
+
+        existing_code = Subject.query.filter(Subject.class_id == class_id, Subject.code == code, Subject.id != subject_id).first()
+        if existing_code:
+            flash('This subject code already exists for the selected class.', 'error')
+            return redirect(url_for('edit_subject', subject_id=subject_id))
+
+        subject.name = name
+        subject.code = code
+        subject.class_id = class_id
+        subject.description = request.form.get('description')
+        subject.is_active = 'is_active' in request.form
+
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash('Unable to update subject due to a database constraint.', 'error')
+            return redirect(url_for('edit_subject', subject_id=subject_id))
+        except Exception:
+            db.session.rollback()
+            flash('An unexpected error occurred while updating the subject.', 'error')
+            return redirect(url_for('edit_subject', subject_id=subject_id))
+
+        flash('Subject updated successfully', 'success')
+        return redirect(url_for('admin_subjects'))
+
+    return render_template('admin/edit_subject.html', subject=subject, classes=classes)
+
+
+@app.route('/admin/subjects/<int:subject_id>/delete', methods=['POST'])
+@login_required
+def delete_subject(subject_id):
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+
+    subject = Subject.query.get_or_404(subject_id)
+    try:
+        db.session.delete(subject)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash('Unable to delete subject.', 'error')
+        return redirect(url_for('admin_subjects'))
+
+    flash('Subject deleted successfully', 'success')
+    return redirect(url_for('admin_subjects'))
+
 # Student Routes
 @app.route('/student/dashboard')
 @login_required
