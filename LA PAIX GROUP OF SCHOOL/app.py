@@ -122,11 +122,19 @@ class Class(db.Model):
 
 class Subject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-    code = db.Column(db.String(20), unique=True, nullable=False)
+    class_id = db.Column(db.Integer, db.ForeignKey('class.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    code = db.Column(db.String(20), nullable=False)
     description = db.Column(db.Text)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    class_assigned = db.relationship('Class', backref='subjects')
+
+    __table_args__ = (
+        db.UniqueConstraint('class_id', 'name', name='uq_subject_name_per_class'),
+        db.UniqueConstraint('class_id', 'code', name='uq_subject_code_per_class'),
+    )
 
 class TeacherSubjectRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -2099,6 +2107,24 @@ def calculate_remark(grade):
 def init_db():
     with app.app_context():
         db.create_all()
+
+        subject_columns = {column['name'] for column in inspect(db.engine).get_columns('subject')}
+        if 'class_id' not in subject_columns:
+            db.session.execute(text('ALTER TABLE subject ADD COLUMN class_id INTEGER'))
+            db.session.commit()
+
+            first_class = Class.query.order_by(Class.id.asc()).first()
+            if first_class:
+                db.session.execute(
+                    text('UPDATE subject SET class_id = :class_id WHERE class_id IS NULL'),
+                    {'class_id': first_class.id}
+                )
+
+        try:
+            db.session.execute(text('ALTER TABLE subject ALTER COLUMN class_id SET NOT NULL'))
+        except Exception:
+            pass
+
         assignment_columns = {column['name'] for column in inspect(db.engine).get_columns('assignment')}
         submission_columns = {column['name'] for column in inspect(db.engine).get_columns('submission')}
         upgrades = {'assignment': {'question_type': "VARCHAR(20) NOT NULL DEFAULT 'theory'", 'questions': "TEXT NOT NULL DEFAULT '[]'", 'google_form_url': 'VARCHAR(500)'}, 'submission': {'answers': "TEXT NOT NULL DEFAULT '{}'"}}
