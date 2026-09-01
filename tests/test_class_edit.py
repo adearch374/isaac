@@ -679,6 +679,39 @@ class ClassEditRouteTests(unittest.TestCase):
         self.assertIn(b'<h3>2</h3>', response.data)
         self.assertIn(b'Subjects', response.data)
 
+    def test_student_dashboard_uses_class_subjects_when_saved_selection_is_stale(self):
+        with app.app_context():
+            student = Student(
+                username='student_dashboard_stale_count',
+                password_hash=generate_password_hash('secret123'),
+                role='student',
+                full_name='Stale Dashboard Student',
+                email='stale_dashboard@example.com',
+                phone='999',
+                student_id='STDDASHSTALE001',
+                class_id=self.class_id,
+                is_active=True,
+                must_change_password=False,
+            )
+            db.session.add(student)
+            db.session.commit()
+
+            subjects = [
+                __import__('app').Subject(class_id=self.class_id, name='Physics', code='PHY2', description='Physics', is_active=True),
+                __import__('app').Subject(class_id=self.class_id, name='Chemistry', code='CHE2', description='Chemistry', is_active=True),
+            ]
+            db.session.add_all(subjects)
+            db.session.commit()
+            student_id = student.id
+
+        with self.client.session_transaction() as session:
+            session['_user_id'] = str(student_id)
+            session['_fresh'] = True
+
+        response = self.client.get('/student/dashboard')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'<h3>2</h3>', response.data)
+
     def test_student_repeated_save_cleans_duplicate_rows_before_commit(self):
         with app.app_context():
             student = Student(

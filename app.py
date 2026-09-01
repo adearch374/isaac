@@ -1113,8 +1113,13 @@ def student_dashboard():
         flash('Student record not found', 'error')
         return redirect(url_for('index'))
     
-    # Get the student's current subject selections, not the number of result records.
-    subjects_count = db.session.query(StudentSubjectChoice.subject_id).filter_by(student_id=student.id).distinct().count()
+    # Get the student's current class subject list, not a stale saved-selection count.
+    if student.class_id:
+        class_subject_ids = {subject.id for subject in Subject.query.filter_by(class_id=student.class_id, is_active=True).all()}
+        saved_subject_ids = {choice.subject_id for choice in StudentSubjectChoice.query.filter_by(student_id=student.id).all()}
+        subjects_count = len(class_subject_ids | saved_subject_ids)
+    else:
+        subjects_count = 0
     recent_results = Result.query.filter_by(student_id=student.id).order_by(Result.created_at.desc()).limit(5).all()
     
     current_session = AcademicSession.query.filter_by(is_active=True).first()
@@ -1934,6 +1939,7 @@ def student_subjects():
             selected_subjects = available_subject_ids
     except Exception:
         db.session.rollback()
+        app.logger.exception('Failed to load student class subjects for student_id=%s', current_user.id)
         flash('Unable to load your class subjects right now. Please try again.', 'error')
         if student and student.class_id:
             available_subjects = Subject.query.filter_by(class_id=student.class_id, is_active=True).order_by(Subject.name.asc()).all()
@@ -1968,6 +1974,7 @@ def student_select_subject():
         db.session.commit()
     except Exception:
         db.session.rollback()
+        app.logger.exception('Failed to save student class subjects for student_id=%s', current_user.id)
         flash('Unable to save your class subjects automatically. Please try again.', 'error')
         return redirect(url_for('student_subjects'))
 
