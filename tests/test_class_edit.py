@@ -178,6 +178,32 @@ class ClassEditRouteTests(unittest.TestCase):
             updated_user = User.query.get(student_id)
             self.assertEqual(updated_user.username, 'student_updated')
 
+    def test_submit_teaching_request_handles_missing_teacher_profile(self):
+        with app.app_context():
+            user = User(
+                username='teacher_without_profile',
+                password_hash=generate_password_hash('secret123'),
+                role='teacher',
+                is_active=True,
+                must_change_password=False,
+            )
+            db.session.add(user)
+            db.session.commit()
+            self.teacher_without_profile_id = user.id
+
+        with self.client.session_transaction() as session:
+            session['_user_id'] = str(self.teacher_without_profile_id)
+            session['_fresh'] = True
+
+        response = self.client.post(
+            '/teacher/submit-request',
+            data={'subject_id': '1', 'class_id': str(self.class_id)},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/', response.headers.get('Location', ''))
+
     def test_site_sets_csp_without_unsafe_eval(self):
         response = self.client.get('/')
 

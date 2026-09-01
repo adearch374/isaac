@@ -1146,34 +1146,46 @@ def submit_teaching_request():
     if current_user.role != 'teacher':
         flash('Access denied', 'error')
         return redirect(url_for('index'))
-    
+
     teacher = Teacher.query.get(current_user.id)
+    if not teacher:
+        flash('Teacher profile not found. Please contact the administrator.', 'error')
+        return redirect(url_for('index'))
+
     subjects = Subject.query.filter_by(is_active=True).all()
     classes = Class.query.filter_by(is_active=True).all()
-    
+
     if request.method == 'POST':
-        subject_id = request.form.get('subject_id')
-        class_id = request.form.get('class_id')
-        
+        try:
+            subject_id = int(request.form.get('subject_id'))
+            class_id = int(request.form.get('class_id'))
+        except (TypeError, ValueError):
+            flash('Please select a valid subject and class before submitting your request.', 'error')
+            return redirect(url_for('teacher_requests'))
+
+        subject = Subject.query.get(subject_id)
+        school_class = Class.query.get(class_id)
+        if not subject or not school_class:
+            flash('The selected subject or class could not be found.', 'error')
+            return redirect(url_for('teacher_requests'))
+
         # Check if request already exists
         existing_request = TeacherSubjectRequest.query.filter_by(
             teacher_id=teacher.id,
             subject_id=subject_id,
             class_id=class_id
         ).first()
-        
+
         if existing_request:
             if existing_request.status == 'rejected':
-                # Update rejected request to pending
                 existing_request.status = 'pending'
                 existing_request.requested_at = datetime.utcnow()
-                log_activity(teacher.id, 'request_resubmit', 'TeacherSubjectRequest', existing_request.id, 
-                           f'Teacher resubmitted request for subject {subject_id} and class {class_id}')
+                log_activity(teacher.id, 'request_resubmit', 'TeacherSubjectRequest', existing_request.id,
+                             f'Teacher resubmitted request for subject {subject_id} and class {class_id}')
                 flash('Your request has been resubmitted for approval', 'success')
             else:
                 flash('You already have a request for this subject and class combination', 'warning')
         else:
-            # Create new request
             new_request = TeacherSubjectRequest(
                 teacher_id=teacher.id,
                 subject_id=subject_id,
@@ -1182,12 +1194,18 @@ def submit_teaching_request():
             )
             db.session.add(new_request)
             log_activity(teacher.id, 'request_create', 'TeacherSubjectRequest', new_request.id,
-                       f'Teacher submitted request for subject {subject_id} and class {class_id}')
+                         f'Teacher submitted request for subject {subject_id} and class {class_id}')
             flash('Your teaching request has been submitted for approval', 'success')
-        
-        db.session.commit()
+
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash('Unable to submit request. Please contact the administrator.', 'error')
+            return redirect(url_for('teacher_requests'))
+
         return redirect(url_for('teacher_requests'))
-    
+
     return render_template('teacher/submit_request.html', teacher=teacher, subjects=subjects, classes=classes)
 
 ALLOWED_ASSIGNMENT_FILES = {
