@@ -1691,14 +1691,25 @@ def teacher_classes():
     if current_user.role != 'teacher':
         flash('Access denied', 'error')
         return redirect(url_for('index'))
-    
+
     teacher = Teacher.query.get(current_user.id)
-    approved_assignments = TeacherSubjectRequest.query.filter_by(
-        teacher_id=teacher.id, 
+    approved_requests = TeacherSubjectRequest.query.filter_by(
+        teacher_id=teacher.id,
         status='approved'
     ).all()
-    
-    return render_template('teacher/classes.html', teacher=teacher, approved_assignments=approved_assignments)
+    class_ids = sorted({request.class_id for request in approved_requests})
+    teacher_classes = Class.query.filter(Class.id.in_(class_ids)).order_by(Class.name.asc()).all() if class_ids else []
+    teacher_class_counts = {
+        school_class.id: Student.query.filter_by(class_id=school_class.id).count()
+        for school_class in teacher_classes
+    }
+
+    return render_template(
+        'teacher/classes.html',
+        teacher=teacher,
+        teacher_classes=teacher_classes,
+        teacher_class_counts=teacher_class_counts,
+    )
 
 # Teacher Attendance
 @app.route('/teacher/attendance')
@@ -1707,14 +1718,87 @@ def teacher_attendance():
     if current_user.role != 'teacher':
         flash('Access denied', 'error')
         return redirect(url_for('index'))
-    
+
     teacher = Teacher.query.get(current_user.id)
-    approved_assignments = TeacherSubjectRequest.query.filter_by(
-        teacher_id=teacher.id, 
+    approved_requests = TeacherSubjectRequest.query.filter_by(
+        teacher_id=teacher.id,
         status='approved'
     ).all()
-    
-    return render_template('teacher/attendance.html', teacher=teacher, approved_assignments=approved_assignments)
+    class_ids = sorted({request.class_id for request in approved_requests})
+    teacher_classes = Class.query.filter(Class.id.in_(class_ids)).order_by(Class.name.asc()).all() if class_ids else []
+    teacher_class_counts = {
+        school_class.id: Student.query.filter_by(class_id=school_class.id).count()
+        for school_class in teacher_classes
+    }
+
+    return render_template(
+        'teacher/attendance.html',
+        teacher=teacher,
+        teacher_classes=teacher_classes,
+        teacher_class_counts=teacher_class_counts,
+    )
+
+@app.route('/teacher/attendance/<int:class_id>', methods=['GET', 'POST'])
+@login_required
+def teacher_record_attendance(class_id):
+    if current_user.role != 'teacher':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+
+    teacher = Teacher.query.get(current_user.id)
+    if not teacher:
+        flash('Teacher profile not found. Please contact the administrator.', 'error')
+        return redirect(url_for('index'))
+
+    approved_request = TeacherSubjectRequest.query.filter_by(
+        teacher_id=teacher.id,
+        class_id=class_id,
+        status='approved'
+    ).first()
+    if not approved_request:
+        flash('You can only record attendance for your approved classes.', 'error')
+        return redirect(url_for('teacher_attendance'))
+
+    school_class = Class.query.get_or_404(class_id)
+    students = Student.query.filter_by(class_id=class_id).order_by(Student.full_name.asc()).all()
+
+    if request.method == 'POST':
+        date_value = request.form.get('date') or datetime.utcnow().strftime('%Y-%m-%d')
+        try:
+            attendance_date = datetime.strptime(date_value, '%Y-%m-%d').date()
+        except ValueError:
+            flash('Please enter a valid attendance date.', 'error')
+            return redirect(url_for('teacher_record_attendance', class_id=class_id))
+
+        for student in students:
+            status = request.form.get(f'status_{student.id}', 'present')
+            notes = request.form.get(f'notes_{student.id}', '')
+
+            existing_record = Attendance.query.filter_by(
+                student_id=student.id,
+                class_id=class_id,
+                date=attendance_date,
+            ).first()
+
+            if existing_record:
+                existing_record.status = status
+                existing_record.notes = notes
+                existing_record.recorded_by = teacher.id
+            else:
+                db.session.add(Attendance(
+                    student_id=student.id,
+                    class_id=class_id,
+                    date=attendance_date,
+                    status=status,
+                    notes=notes,
+                    recorded_by=teacher.id,
+                ))
+
+        db.session.commit()
+        flash(f'Attendance recorded successfully for {school_class.name}.', 'success')
+        return redirect(url_for('teacher_attendance'))
+
+    return render_template('teacher/record_attendance.html', teacher=teacher, school_class=school_class, students=students)
 
 # Teacher Timetable
 @app.route('/teacher/timetable')

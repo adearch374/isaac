@@ -204,6 +204,101 @@ class ClassEditRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/', response.headers.get('Location', ''))
 
+    def test_teacher_class_list_and_attendance_are_class_based(self):
+        with app.app_context():
+            teacher = Teacher(
+                username='teacher_class_role',
+                password_hash=generate_password_hash('secret123'),
+                role='teacher',
+                full_name='Class Teacher',
+                email='class@example.com',
+                phone='12345',
+                department='Math',
+                qualification='BSc',
+                teacher_id='TCHCLASS',
+                is_active=True,
+                must_change_password=False,
+            )
+            db.session.add(teacher)
+            db.session.commit()
+
+            class_two = Class(name='JSS 2', level='Junior Secondary', capacity=30, is_active=True)
+            db.session.add(class_two)
+            db.session.commit()
+
+            subject = __import__('app').Subject(
+                class_id=self.class_id,
+                name='Mathematics',
+                code='MATH',
+                description='Math',
+                is_active=True,
+            )
+            db.session.add(subject)
+            db.session.commit()
+
+            student = Student(
+                username='student_for_attendance',
+                password_hash=generate_password_hash('secret123'),
+                role='student',
+                full_name='Student For Attendance',
+                email='student_att@example.com',
+                phone='123',
+                student_id='STDATT001',
+                class_id=self.class_id,
+                is_active=True,
+                must_change_password=False,
+            )
+            db.session.add(student)
+            db.session.commit()
+
+            db.session.add(__import__('app').TeacherSubjectRequest(
+                teacher_id=teacher.id,
+                subject_id=subject.id,
+                class_id=self.class_id,
+                status='approved',
+            ))
+            db.session.commit()
+            teacher_id = teacher.id
+
+        with self.client.session_transaction() as session:
+            session['_user_id'] = str(teacher_id)
+            session['_fresh'] = True
+
+        classes_response = self.client.get('/teacher/classes')
+        self.assertEqual(classes_response.status_code, 200)
+        self.assertIn(b'My Classes', classes_response.data)
+        self.assertIn(b'<th>Students</th>', classes_response.data)
+        self.assertNotIn(b'<th>Subject</th>', classes_response.data)
+
+        attendance_response = self.client.get('/teacher/attendance')
+        self.assertEqual(attendance_response.status_code, 200)
+        self.assertIn(b'Attendance', attendance_response.data)
+        self.assertIn(b'<th>Students</th>', attendance_response.data)
+        self.assertNotIn(b'<th>Subject</th>', attendance_response.data)
+
+        record_response = self.client.post(
+            f'/teacher/attendance/{self.class_id}',
+            data={
+                'student_0': 'present',
+                'notes_0': 'On time',
+            },
+            follow_redirects=False,
+        )
+
+        self.assertEqual(record_response.status_code, 302)
+        self.assertIn('/teacher/attendance', record_response.headers.get('Location', ''))
+
+        with app.app_context():
+            student_id = Student.query.filter_by(username='student_for_attendance').first().id
+            teacher_id = Teacher.query.filter_by(username='teacher_class_role').first().id
+            attendance_record = __import__('app').Attendance.query.filter_by(
+                class_id=self.class_id,
+                student_id=student_id,
+                recorded_by=teacher_id,
+            ).first()
+            self.assertIsNotNone(attendance_record)
+            self.assertEqual(attendance_record.status, 'present')
+
     def test_site_sets_csp_without_unsafe_eval(self):
         response = self.client.get('/')
 

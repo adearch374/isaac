@@ -182,24 +182,26 @@
 
             <!-- Classes for Attendance -->
             <div class="table-container">
-                {% if approved_assignments %}
+                {% if teacher_classes %}
                     <h3>Select a class to record attendance:</h3>
                     <div class="table-responsive">
 <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Class</th>
-                                <th>Subject</th>
+                                <th>Level</th>
+                                <th>Students</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for assignment in approved_assignments %}
+                            {% for school_class in teacher_classes %}
                                 <tr>
-                                    <td>{{ assignment.class_assigned.name }}</td>
-                                    <td>{{ assignment.subject.name }}</td>
+                                    <td>{{ school_class.name }}</td>
+                                    <td>{{ school_class.level or '-' }}</td>
+                                    <td>{{ teacher_class_counts.get(school_class.id, 0) }}</td>
                                     <td>
-                                        <a href="#" style="color: #1e3c72; font-weight: 500;">Record Attendance</a>
+                                        <a href="{{ url_for('teacher_record_attendance', class_id=school_class.id) }}" style="color: #1e3c72; font-weight: 500;">Record Attendance</a>
                                     </td>
                                 </tr>
                             {% endfor %}
