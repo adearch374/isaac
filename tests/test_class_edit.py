@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from app import app, db, Class, User, generate_password_hash
+from app import app, db, Class, User, Teacher, Student, generate_password_hash
 
 
 class ClassEditRouteTests(unittest.TestCase):
@@ -82,6 +82,101 @@ class ClassEditRouteTests(unittest.TestCase):
         self.assertIn('/admin/subjects', response.headers.get('Location', ''))
         mock_log_activity.assert_called_once()
         self.assertEqual(mock_log_activity.call_args.kwargs.get('commit'), False)
+
+    def test_edit_teacher_updates_username(self):
+        with app.app_context():
+            teacher = Teacher(
+                username='teacher1',
+                password_hash=generate_password_hash('secret123'),
+                role='teacher',
+                full_name='John Teacher',
+                email='john@example.com',
+                phone='12345',
+                department='Math',
+                qualification='BSc',
+                teacher_id='TCH001',
+                is_active=True,
+                must_change_password=False,
+            )
+            db.session.add(teacher)
+            db.session.commit()
+            teacher_id = teacher.id
+
+        with self.client.session_transaction() as session:
+            session['_user_id'] = str(self.admin_id)
+            session['_fresh'] = True
+
+        response = self.client.post(
+            f'/admin/teachers/{teacher_id}/edit',
+            data={
+                'full_name': 'John Teacher',
+                'email': 'john@example.com',
+                'phone': '12345',
+                'department': 'Math',
+                'qualification': 'BSc',
+                'username': 'teacher_updated',
+            },
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/admin/teachers', response.headers.get('Location', ''))
+
+        with app.app_context():
+            updated_user = User.query.get(teacher_id)
+            self.assertEqual(updated_user.username, 'teacher_updated')
+
+    def test_edit_student_updates_username(self):
+        with app.app_context():
+            student = Student(
+                username='student1',
+                password_hash=generate_password_hash('secret123'),
+                role='student',
+                full_name='Jane Student',
+                email='jane@example.com',
+                phone='98765',
+                student_id='LIN001',
+                date_of_birth=None,
+                gender='Female',
+                address='Main Street',
+                parent_name='Parent',
+                parent_phone='555',
+                class_id=self.class_id,
+                is_active=True,
+                must_change_password=False,
+            )
+            db.session.add(student)
+            db.session.commit()
+            student_id = student.id
+
+        with self.client.session_transaction() as session:
+            session['_user_id'] = str(self.admin_id)
+            session['_fresh'] = True
+
+        response = self.client.post(
+            f'/admin/students/{student_id}/edit',
+            data={
+                'student_id': 'LIN001',
+                'full_name': 'Jane Student',
+                'email': 'jane@example.com',
+                'phone': '98765',
+                'date_of_birth': '',
+                'gender': 'Female',
+                'address': 'Main Street',
+                'parent_name': 'Parent',
+                'parent_phone': '555',
+                'class_id': str(self.class_id),
+                'username': 'student_updated',
+            },
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/admin/students', response.headers.get('Location', ''))
+
+        with app.app_context():
+            updated_user = User.query.get(student_id)
+            self.assertEqual(updated_user.username, 'student_updated')
 
     def test_site_sets_csp_without_unsafe_eval(self):
         response = self.client.get('/')

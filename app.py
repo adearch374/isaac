@@ -661,14 +661,24 @@ def edit_student(student_id):
     student = Student.query.get_or_404(student_id)
     
     if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        if not username:
+            flash('Username is required', 'error')
+            return redirect(url_for('edit_student', student_id=student_id))
+
+        existing_user = User.query.filter(User.username == username, User.id != student.id).first()
+        if existing_user:
+            flash('Username already exists', 'error')
+            return redirect(url_for('edit_student', student_id=student_id))
+
         new_lin = request.form.get('student_id')
         if new_lin and new_lin != student.student_id:
-            # Check if new LIN already exists
             if Student.query.filter_by(student_id=new_lin).first():
                 flash('Learners Identification Number (LIN) already exists', 'error')
                 return redirect(url_for('edit_student', student_id=student_id))
             student.student_id = new_lin
         
+        student.username = username
         student.full_name = request.form.get('full_name')
         student.email = request.form.get('email')
         student.phone = request.form.get('phone')
@@ -765,6 +775,17 @@ def edit_teacher(teacher_id):
     teacher = Teacher.query.get_or_404(teacher_id)
     
     if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        if not username:
+            flash('Username is required', 'error')
+            return redirect(url_for('edit_teacher', teacher_id=teacher_id))
+
+        existing_user = User.query.filter(User.username == username, User.id != teacher.id).first()
+        if existing_user:
+            flash('Username already exists', 'error')
+            return redirect(url_for('edit_teacher', teacher_id=teacher_id))
+
+        teacher.username = username
         teacher.full_name = request.form.get('full_name')
         teacher.email = request.form.get('email')
         teacher.phone = request.form.get('phone')

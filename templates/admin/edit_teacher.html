@@ -218,29 +218,35 @@
                 <form method="POST" action="{{ url_for('edit_teacher', teacher_id=teacher.id) }}">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="full_name">Full Name</label>
-                            <input type="text" name="full_name" id="full_name" value="{{ teacher.full_name }}" required>
+                            <label for="username">Username</label>
+                            <input type="text" name="username" id="username" value="{{ teacher.username }}" required>
                         </div>
                         <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" name="email" id="email" value="{{ teacher.email }}" required>
+                            <label for="full_name">Full Name</label>
+                            <input type="text" name="full_name" id="full_name" value="{{ teacher.full_name }}" required>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" name="email" id="email" value="{{ teacher.email }}" required>
+                        </div>
+                        <div class="form-group">
                             <label for="phone">Phone</label>
                             <input type="tel" name="phone" id="phone" value="{{ teacher.phone or '' }}">
                         </div>
+                    </div>
+
+                    <div class="form-row">
                         <div class="form-group">
                             <label for="department">Department</label>
                             <input type="text" name="department" id="department" value="{{ teacher.department or '' }}">
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="qualification">Qualification</label>
-                        <input type="text" name="qualification" id="qualification" value="{{ teacher.qualification or '' }}">
+                        <div class="form-group">
+                            <label for="qualification">Qualification</label>
+                            <input type="text" name="qualification" id="qualification" value="{{ teacher.qualification or '' }}">
+                        </div>
                     </div>
 
                     <div class="form-group">
