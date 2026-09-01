@@ -1908,6 +1908,10 @@ def student_select_subject():
     if not raw_subject_ids:
         raw_subject_ids = [request.form.get('subject_id')] if request.form.get('subject_id') else []
 
+    if not raw_subject_ids or all((value is None or str(value).strip() == '') for value in raw_subject_ids):
+        flash('Please select at least one subject from your class.', 'error')
+        return redirect(url_for('student_subjects'))
+
     valid_subject_ids = []
     for raw_subject_id in raw_subject_ids:
         try:
@@ -1919,7 +1923,7 @@ def student_select_subject():
             valid_subject_ids.append(subject.id)
 
     if not valid_subject_ids:
-        flash('You can only choose subjects from your own class.', 'error')
+        flash('Please select at least one valid subject from your class.', 'error')
         return redirect(url_for('student_subjects'))
 
     existing_choices = StudentSubjectChoice.query.filter_by(student_id=student.id).all()

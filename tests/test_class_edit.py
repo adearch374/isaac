@@ -700,6 +700,37 @@ class ClassEditRouteTests(unittest.TestCase):
             choices = __import__('app').StudentSubjectChoice.query.filter_by(student_id=student_id, subject_id=subject_id).all()
             self.assertEqual(len(choices), 1)
 
+    def test_student_submission_requires_at_least_one_subject(self):
+        with app.app_context():
+            student = Student(
+                username='student_empty_submission',
+                password_hash=generate_password_hash('secret123'),
+                role='student',
+                full_name='Empty Submission Student',
+                email='empty_submission@example.com',
+                phone='999',
+                student_id='STDEMPTY001',
+                class_id=self.class_id,
+                is_active=True,
+                must_change_password=False,
+            )
+            db.session.add(student)
+            db.session.commit()
+            student_id = student.id
+
+        with self.client.session_transaction() as session:
+            session['_user_id'] = str(student_id)
+            session['_fresh'] = True
+
+        response = self.client.post(
+            '/student/subjects/select',
+            data={'subject_ids': []},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/student/subjects', response.headers.get('Location', ''))
+
     def test_site_sets_csp_without_unsafe_eval(self):
         response = self.client.get('/')
 
