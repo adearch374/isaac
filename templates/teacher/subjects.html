@@ -199,7 +199,7 @@
                                     <td>{{ assignment.subject.name }}</td>
                                     <td>{{ assignment.subject.code }}</td>
                                     <td>{{ assignment.class_assigned.name }}</td>
-                                    <td>{{ assignment.approved_at.strftime('%B %d, %Y') if assignment.approved_at else '-' }}</td>
+                                    <td>{{ assignment.reviewed_at.strftime('%B %d, %Y') if assignment.reviewed_at else assignment.requested_at.strftime('%B %d, %Y') if assignment.requested_at else '-' }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>

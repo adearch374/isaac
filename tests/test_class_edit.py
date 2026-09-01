@@ -372,6 +372,53 @@ class ClassEditRouteTests(unittest.TestCase):
         self.assertIn(b'History Student', response.data)
         self.assertIn(b'present', response.data.lower())
 
+    def test_teacher_subjects_page_renders_for_approved_assignments(self):
+        with app.app_context():
+            teacher = Teacher(
+                username='teacher_subjects_page',
+                password_hash=generate_password_hash('secret123'),
+                role='teacher',
+                full_name='Subjects Teacher',
+                email='subjects_teacher@example.com',
+                phone='321',
+                department='Math',
+                qualification='BSc',
+                teacher_id='TCHSUBJECTS',
+                is_active=True,
+                must_change_password=False,
+            )
+            db.session.add(teacher)
+            db.session.commit()
+
+            subject = __import__('app').Subject(
+                class_id=self.class_id,
+                name='Geography',
+                code='GEO',
+                description='Geography',
+                is_active=True,
+            )
+            db.session.add(subject)
+            db.session.commit()
+
+            db.session.add(__import__('app').TeacherSubjectRequest(
+                teacher_id=teacher.id,
+                subject_id=subject.id,
+                class_id=self.class_id,
+                status='approved',
+                reviewed_at=__import__('datetime').datetime.utcnow(),
+            ))
+            db.session.commit()
+            teacher_id = teacher.id
+
+        with self.client.session_transaction() as session:
+            session['_user_id'] = str(teacher_id)
+            session['_fresh'] = True
+
+        response = self.client.get('/teacher/subjects')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'My Subjects', response.data)
+        self.assertIn(b'Geography', response.data)
+
     def test_teacher_can_submit_multiple_subject_requests(self):
         with app.app_context():
             teacher = Teacher(

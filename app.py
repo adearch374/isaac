@@ -173,6 +173,10 @@ class TeacherSubjectRequest(db.Model):
     class_assigned = db.relationship('Class', backref='teacher_requests')
     reviewer = db.relationship('Admin', backref='reviewed_requests')
 
+    @property
+    def approved_at(self):
+        return self.reviewed_at or self.requested_at
+
 class StudentSubjectChoice(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
