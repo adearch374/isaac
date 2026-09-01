@@ -175,7 +175,7 @@ class TeacherSubjectRequest(db.Model):
 
 class StudentSubjectChoice(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False, unique=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
     class_id = db.Column(db.Integer, db.ForeignKey('class.id'), nullable=False)
     selected_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -184,6 +184,10 @@ class StudentSubjectChoice(db.Model):
     student = db.relationship('Student', backref='selected_subjects')
     subject = db.relationship('Subject', backref='selected_students')
     class_assigned = db.relationship('Class', backref='selected_subjects')
+
+    __table_args__ = (
+        db.UniqueConstraint('student_id', 'subject_id', name='uq_student_subject_choice'),
+    )
 
 class AcademicSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -1884,9 +1888,9 @@ def student_subjects():
         return redirect(url_for('index'))
 
     student = Student.query.get(current_user.id)
-    selected_choice = StudentSubjectChoice.query.filter_by(student_id=student.id).first() if student else None
+    selected_subjects = {choice.subject_id for choice in StudentSubjectChoice.query.filter_by(student_id=student.id).all()} if student else set()
     available_subjects = Subject.query.filter_by(class_id=student.class_id, is_active=True).order_by(Subject.name.asc()).all() if student and student.class_id else []
-    return render_template('student/subjects.html', student=student, available_subjects=available_subjects, selected_choice=selected_choice)
+    return render_template('student/subjects.html', student=student, available_subjects=available_subjects, selected_subjects=selected_subjects)
 
 @app.route('/student/subjects/select', methods=['POST'])
 @login_required
@@ -1900,29 +1904,43 @@ def student_select_subject():
         flash('You must be assigned to a class before selecting a subject.', 'error')
         return redirect(url_for('student_subjects'))
 
-    try:
-        subject_id = int(request.form.get('subject_id'))
-    except (TypeError, ValueError):
-        flash('Please select a valid subject.', 'error')
+    raw_subject_ids = request.form.getlist('subject_ids')
+    if not raw_subject_ids:
+        raw_subject_ids = [request.form.get('subject_id')] if request.form.get('subject_id') else []
+
+    valid_subject_ids = []
+    for raw_subject_id in raw_subject_ids:
+        try:
+            subject_id = int(raw_subject_id)
+        except (TypeError, ValueError):
+            continue
+        subject = Subject.query.filter_by(id=subject_id, class_id=student.class_id, is_active=True).first()
+        if subject:
+            valid_subject_ids.append(subject.id)
+
+    if not valid_subject_ids:
+        flash('You can only choose subjects from your own class.', 'error')
         return redirect(url_for('student_subjects'))
 
-    subject = Subject.query.filter_by(id=subject_id, class_id=student.class_id, is_active=True).first()
-    if not subject:
-        flash('You can only choose a subject from your own class.', 'error')
+    existing_choices = StudentSubjectChoice.query.filter_by(student_id=student.id).all()
+    existing_ids = {choice.subject_id for choice in existing_choices}
+
+    selected_ids = set(valid_subject_ids)
+    invalid_cross_class = selected_ids - {subject.id for subject in Subject.query.filter_by(class_id=student.class_id, is_active=True).all()}
+    if invalid_cross_class:
+        flash('You can only choose subjects from your own class.', 'error')
         return redirect(url_for('student_subjects'))
 
-    existing_choice = StudentSubjectChoice.query.filter_by(student_id=student.id).first()
-    if existing_choice:
-        existing_choice.subject_id = subject.id
-        existing_choice.class_id = student.class_id
-        existing_choice.updated_at = datetime.utcnow()
-        selected_choice = existing_choice
-    else:
-        selected_choice = StudentSubjectChoice(student_id=student.id, subject_id=subject.id, class_id=student.class_id)
-        db.session.add(selected_choice)
+    for choice in existing_choices:
+        if choice.subject_id not in selected_ids:
+            db.session.delete(choice)
+
+    for subject_id in sorted(selected_ids):
+        if subject_id not in existing_ids:
+            db.session.add(StudentSubjectChoice(student_id=student.id, subject_id=subject_id, class_id=student.class_id))
 
     db.session.commit()
-    flash('Your subject selection has been saved.', 'success')
+    flash('Your subject selections have been saved.', 'success')
     return redirect(url_for('student_subjects'))
 
 # Student Attendance
@@ -2642,6 +2660,46 @@ def calculate_remark(grade):
 def init_db():
     with app.app_context():
         db.create_all()
+
+        table_names = inspect(db.engine).get_table_names()
+        if 'student_subject_choice' in table_names:
+            if db.engine.dialect.name == 'sqlite':
+                index_rows = db.session.execute(text("PRAGMA index_list('student_subject_choice')")).fetchall()
+                needs_migration = False
+                for index_row in index_rows:
+                    index_name = index_row[1]
+                    is_unique = bool(index_row[2])
+                    if not is_unique:
+                        continue
+                    index_info_rows = db.session.execute(text(f"PRAGMA index_info('{index_name}')")).fetchall()
+                    columns = [info_row[2] for info_row in index_info_rows]
+                    if columns == ['student_id']:
+                        needs_migration = True
+                        break
+
+                if needs_migration:
+                    db.session.execute(text('ALTER TABLE student_subject_choice RENAME TO student_subject_choice_old'))
+                    db.session.execute(text('''
+                        CREATE TABLE student_subject_choice (
+                            id INTEGER NOT NULL PRIMARY KEY,
+                            student_id INTEGER NOT NULL,
+                            subject_id INTEGER NOT NULL,
+                            class_id INTEGER NOT NULL,
+                            selected_at DATETIME,
+                            updated_at DATETIME,
+                            FOREIGN KEY (student_id) REFERENCES student (id),
+                            FOREIGN KEY (subject_id) REFERENCES subject (id),
+                            FOREIGN KEY (class_id) REFERENCES class (id),
+                            UNIQUE (student_id, subject_id)
+                        )
+                    '''))
+                    db.session.execute(text('''
+                        INSERT INTO student_subject_choice (id, student_id, subject_id, class_id, selected_at, updated_at)
+                        SELECT id, student_id, subject_id, class_id, selected_at, updated_at
+                        FROM student_subject_choice_old
+                    '''))
+                    db.session.execute(text('DROP TABLE student_subject_choice_old'))
+                    db.session.commit()
 
         subject_columns = {column['name'] for column in inspect(db.engine).get_columns('subject')}
         if 'class_id' not in subject_columns:

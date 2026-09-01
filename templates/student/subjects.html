@@ -186,14 +186,14 @@
                         <p><strong>Class:</strong> {{ student.class_assigned.name }}</p>
                         <form method="POST" action="{{ url_for('student_select_subject') }}">
                             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                                <select name="subject_id" required style="min-width: 260px; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
-                                    <option value="">Choose a subject from your class</option>
+                                <select name="subject_ids" multiple size="8" required style="min-width: 290px; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
                                     {% for subject in available_subjects %}
-                                        <option value="{{ subject.id }}" {% if selected_choice and selected_choice.subject_id == subject.id %}selected{% endif %}>{{ subject.name }} ({{ subject.code }})</option>
+                                        <option value="{{ subject.id }}" {% if selected_subjects and subject.id in selected_subjects %}selected{% endif %}>{{ subject.name }} ({{ subject.code }})</option>
                                     {% endfor %}
                                 </select>
-                                <button type="submit" class="btn btn-primary" style="background: #1e3c72; color: white; border: none; padding: 10px 18px; border-radius: 5px; cursor: pointer;">Save Subject</button>
+                                <button type="submit" class="btn btn-primary" style="background: #1e3c72; color: white; border: none; padding: 10px 18px; border-radius: 5px; cursor: pointer;">Save Subjects</button>
                             </div>
+                            <small style="display:block; margin-top:8px; color:#666;">Hold Ctrl/Cmd to select more than one subject.</small>
                         </form>
                     </div>
 
@@ -215,7 +215,7 @@
                                             <td>{{ subject.code }}</td>
                                             <td>{{ student.class_assigned.name }}</td>
                                             <td>
-                                                {% if selected_choice and selected_choice.subject_id == subject.id %}
+                                                {% if selected_subjects and subject.id in selected_subjects %}
                                                     Selected
                                                 {% else %}
                                                     Available

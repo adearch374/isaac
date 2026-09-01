@@ -517,7 +517,7 @@ class ClassEditRouteTests(unittest.TestCase):
         self.assertIn(b'Mathematics', response.data)
         self.assertIn(b'Approved', response.data)
 
-    def test_student_can_select_only_subject_from_own_class(self):
+    def test_student_can_select_many_subjects_from_own_class_only(self):
         with app.app_context():
             student = Student(
                 username='student_subject_choice',
@@ -545,6 +545,13 @@ class ClassEditRouteTests(unittest.TestCase):
                 description='Science',
                 is_active=True,
             )
+            same_class_subject_two = __import__('app').Subject(
+                class_id=self.class_id,
+                name='Commerce',
+                code='COM',
+                description='Commerce',
+                is_active=True,
+            )
             other_class_subject = __import__('app').Subject(
                 class_id=other_class.id,
                 name='Art',
@@ -552,9 +559,10 @@ class ClassEditRouteTests(unittest.TestCase):
                 description='Art',
                 is_active=True,
             )
-            db.session.add_all([same_class_subject, other_class_subject])
+            db.session.add_all([same_class_subject, same_class_subject_two, other_class_subject])
             db.session.commit()
             same_class_subject_id = same_class_subject.id
+            same_class_subject_two_id = same_class_subject_two.id
             other_class_subject_id = other_class_subject.id
             student_id = student.id
 
@@ -564,7 +572,7 @@ class ClassEditRouteTests(unittest.TestCase):
 
         invalid_response = self.client.post(
             '/student/subjects/select',
-            data={'subject_id': str(other_class_subject_id)},
+            data={'subject_ids': [str(same_class_subject_id), str(other_class_subject_id)]},
             follow_redirects=False,
         )
         self.assertEqual(invalid_response.status_code, 302)
@@ -572,17 +580,17 @@ class ClassEditRouteTests(unittest.TestCase):
 
         valid_response = self.client.post(
             '/student/subjects/select',
-            data={'subject_id': str(same_class_subject_id)},
+            data={'subject_ids': [str(same_class_subject_id), str(same_class_subject_two_id)]},
             follow_redirects=False,
         )
         self.assertEqual(valid_response.status_code, 302)
         self.assertIn('/student/subjects', valid_response.headers.get('Location', ''))
 
         with app.app_context():
-            choice = __import__('app').StudentSubjectChoice.query.filter_by(student_id=student_id).first()
-            self.assertIsNotNone(choice)
-            self.assertEqual(choice.subject_id, same_class_subject_id)
-            self.assertEqual(choice.class_id, self.class_id)
+            choices = __import__('app').StudentSubjectChoice.query.filter_by(student_id=student_id).order_by(__import__('app').StudentSubjectChoice.subject_id).all()
+            self.assertEqual(len(choices), 2)
+            self.assertEqual({choice.subject_id for choice in choices}, {same_class_subject_id, same_class_subject_two_id})
+            self.assertTrue(all(choice.class_id == self.class_id for choice in choices))
 
     def test_site_sets_csp_without_unsafe_eval(self):
         response = self.client.get('/')
