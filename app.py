@@ -1888,8 +1888,21 @@ def student_subjects():
         return redirect(url_for('index'))
 
     student = Student.query.get(current_user.id)
-    selected_subjects = {choice.subject_id for choice in StudentSubjectChoice.query.filter_by(student_id=student.id).all()} if student else set()
-    available_subjects = Subject.query.filter_by(class_id=student.class_id, is_active=True).order_by(Subject.name.asc()).all() if student and student.class_id else []
+    if student and student.class_id:
+        available_subjects = Subject.query.filter_by(class_id=student.class_id, is_active=True).order_by(Subject.name.asc()).all()
+        available_subject_ids = {subject.id for subject in available_subjects}
+        existing_subject_ids = {choice.subject_id for choice in StudentSubjectChoice.query.filter_by(student_id=student.id).all()}
+
+        if existing_subject_ids != available_subject_ids:
+            StudentSubjectChoice.query.filter_by(student_id=student.id).delete()
+            for subject in available_subjects:
+                db.session.add(StudentSubjectChoice(student_id=student.id, subject_id=subject.id, class_id=student.class_id))
+            db.session.commit()
+
+        selected_subjects = available_subject_ids
+    else:
+        selected_subjects = set()
+        available_subjects = []
     return render_template('student/subjects.html', student=student, available_subjects=available_subjects, selected_subjects=selected_subjects)
 
 @app.route('/student/subjects/select', methods=['POST'])
@@ -1904,47 +1917,23 @@ def student_select_subject():
         flash('You must be assigned to a class before selecting a subject.', 'error')
         return redirect(url_for('student_subjects'))
 
-    raw_subject_ids = request.form.getlist('subject_ids')
-    if not raw_subject_ids:
-        raw_subject_ids = [request.form.get('subject_id')] if request.form.get('subject_id') else []
-
-    if not raw_subject_ids or all((value is None or str(value).strip() == '') for value in raw_subject_ids):
-        flash('Please select at least one subject from your class.', 'error')
-        return redirect(url_for('student_subjects'))
-
-    valid_subject_ids = []
-    for raw_subject_id in raw_subject_ids:
-        try:
-            subject_id = int(raw_subject_id)
-        except (TypeError, ValueError):
-            continue
-        subject = Subject.query.filter_by(id=subject_id, class_id=student.class_id, is_active=True).first()
-        if subject:
-            valid_subject_ids.append(subject.id)
-
-    if not valid_subject_ids:
-        flash('Please select at least one valid subject from your class.', 'error')
-        return redirect(url_for('student_subjects'))
-
-    selected_ids = set(valid_subject_ids)
-    allowed_subject_ids = {subject.id for subject in Subject.query.filter_by(class_id=student.class_id, is_active=True).all()}
-    invalid_cross_class = selected_ids - allowed_subject_ids
-    if invalid_cross_class:
-        flash('You can only choose subjects from your own class.', 'error')
+    available_subject_ids = [subject.id for subject in Subject.query.filter_by(class_id=student.class_id, is_active=True).all()]
+    if not available_subject_ids:
+        flash('No subjects have been added for your class yet.', 'error')
         return redirect(url_for('student_subjects'))
 
     StudentSubjectChoice.query.filter_by(student_id=student.id).delete()
-    for subject_id in sorted(selected_ids):
+    for subject_id in sorted(available_subject_ids):
         db.session.add(StudentSubjectChoice(student_id=student.id, subject_id=subject_id, class_id=student.class_id))
 
     try:
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        flash('Unable to save your subject selection because one or more choices already exist. Please try again.', 'error')
+        flash('Unable to save your class subjects automatically. Please try again.', 'error')
         return redirect(url_for('student_subjects'))
 
-    flash('Your subject selections have been saved.', 'success')
+    flash('All subjects for your class have been automatically selected.', 'success')
     return redirect(url_for('student_subjects'))
 
 # Student Attendance

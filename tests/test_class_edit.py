@@ -731,6 +731,61 @@ class ClassEditRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/student/subjects', response.headers.get('Location', ''))
 
+    def test_student_class_subjects_are_auto_selected(self):
+        with app.app_context():
+            student = Student(
+                username='student_auto_subjects',
+                password_hash=generate_password_hash('secret123'),
+                role='student',
+                full_name='Auto Subject Student',
+                email='auto_subject@example.com',
+                phone='111',
+                student_id='STD_AUTO_001',
+                class_id=self.class_id,
+                is_active=True,
+                must_change_password=False,
+            )
+            db.session.add(student)
+            db.session.commit()
+
+            maths = __import__('app').Subject(
+                class_id=self.class_id,
+                name='Mathematics',
+                code='MATH_AUTO',
+                description='Math',
+                is_active=True,
+            )
+            english = __import__('app').Subject(
+                class_id=self.class_id,
+                name='English',
+                code='ENG_AUTO',
+                description='English',
+                is_active=True,
+            )
+            db.session.add_all([maths, english])
+            db.session.commit()
+            student_id = student.id
+
+        with self.client.session_transaction() as session:
+            session['_user_id'] = str(student_id)
+            session['_fresh'] = True
+
+        response = self.client.post(
+            '/student/subjects/select',
+            data={'subject_ids': []},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/student/subjects', response.headers.get('Location', ''))
+
+        with app.app_context():
+            maths_id = __import__('app').Subject.query.filter_by(code='MATH_AUTO').first().id
+            english_id = __import__('app').Subject.query.filter_by(code='ENG_AUTO').first().id
+            choices = __import__('app').StudentSubjectChoice.query.filter_by(student_id=student_id).all()
+            self.assertEqual(len(choices), 2)
+            self.assertEqual({choice.subject_id for choice in choices}, {maths_id, english_id})
+
     def test_site_sets_csp_without_unsafe_eval(self):
         response = self.client.get('/')
 
