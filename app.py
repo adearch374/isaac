@@ -1926,9 +1926,6 @@ def student_select_subject():
         flash('Please select at least one valid subject from your class.', 'error')
         return redirect(url_for('student_subjects'))
 
-    existing_choices = StudentSubjectChoice.query.filter_by(student_id=student.id).all()
-    existing_ids = {choice.subject_id for choice in existing_choices}
-
     selected_ids = set(valid_subject_ids)
     allowed_subject_ids = {subject.id for subject in Subject.query.filter_by(class_id=student.class_id, is_active=True).all()}
     invalid_cross_class = selected_ids - allowed_subject_ids
@@ -1936,45 +1933,16 @@ def student_select_subject():
         flash('You can only choose subjects from your own class.', 'error')
         return redirect(url_for('student_subjects'))
 
-    db.session.execute(text('''
-        DELETE FROM student_subject_choice
-        WHERE student_id = :student_id
-          AND id NOT IN (
-              SELECT MIN(id)
-              FROM student_subject_choice
-              WHERE student_id = :student_id
-              GROUP BY student_id, subject_id
-          )
-    '''), {'student_id': student.id})
-
-    for choice in existing_choices:
-        if choice.subject_id not in selected_ids:
-            db.session.delete(choice)
-
+    StudentSubjectChoice.query.filter_by(student_id=student.id).delete()
     for subject_id in sorted(selected_ids):
-        if subject_id not in existing_ids:
-            db.session.add(StudentSubjectChoice(student_id=student.id, subject_id=subject_id, class_id=student.class_id))
+        db.session.add(StudentSubjectChoice(student_id=student.id, subject_id=subject_id, class_id=student.class_id))
 
     try:
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        db.session.execute(text('''
-            DELETE FROM student_subject_choice
-            WHERE student_id = :student_id
-              AND id NOT IN (
-                  SELECT MIN(id)
-                  FROM student_subject_choice
-                  WHERE student_id = :student_id
-                  GROUP BY student_id, subject_id
-              )
-        '''), {'student_id': student.id})
-        try:
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            flash('Unable to save your subject selection because one or more choices already exist. Please try again.', 'error')
-            return redirect(url_for('student_subjects'))
+        flash('Unable to save your subject selection because one or more choices already exist. Please try again.', 'error')
+        return redirect(url_for('student_subjects'))
 
     flash('Your subject selections have been saved.', 'success')
     return redirect(url_for('student_subjects'))
