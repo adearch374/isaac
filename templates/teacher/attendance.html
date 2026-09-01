@@ -217,6 +217,36 @@
                     </div>
                 {% endif %}
             </div>
+
+            {% if attendance_history %}
+            <div class="table-container" style="margin-top: 30px;">
+                <h3>Attendance History</h3>
+                <div class="table-responsive">
+<table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Class</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in attendance_history %}
+                            <tr>
+                                <td>{{ record.student.full_name }}</td>
+                                <td>{{ record.class_attendance.name }}</td>
+                                <td>{{ record.date.strftime('%d %b %Y') }}</td>
+                                <td>{{ record.status.title() }}</td>
+                                <td>{{ record.notes or '-' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+</div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </body>

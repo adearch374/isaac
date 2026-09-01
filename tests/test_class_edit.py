@@ -299,6 +299,79 @@ class ClassEditRouteTests(unittest.TestCase):
             self.assertIsNotNone(attendance_record)
             self.assertEqual(attendance_record.status, 'present')
 
+    def test_teacher_attendance_history_lists_previous_records(self):
+        with app.app_context():
+            teacher = Teacher(
+                username='teacher_history',
+                password_hash=generate_password_hash('secret123'),
+                role='teacher',
+                full_name='History Teacher',
+                email='history@example.com',
+                phone='99999',
+                department='Science',
+                qualification='BSc',
+                teacher_id='TCHHIST',
+                is_active=True,
+                must_change_password=False,
+            )
+            db.session.add(teacher)
+            db.session.commit()
+
+            student = Student(
+                username='student_history',
+                password_hash=generate_password_hash('secret123'),
+                role='student',
+                full_name='History Student',
+                email='history_student@example.com',
+                phone='555',
+                student_id='STDHIST001',
+                class_id=self.class_id,
+                is_active=True,
+                must_change_password=False,
+            )
+            db.session.add(student)
+            db.session.commit()
+
+            subject = __import__('app').Subject(
+                class_id=self.class_id,
+                name='Biology',
+                code='BIO',
+                description='Biology',
+                is_active=True,
+            )
+            db.session.add(subject)
+            db.session.commit()
+
+            db.session.add(__import__('app').TeacherSubjectRequest(
+                teacher_id=teacher.id,
+                subject_id=subject.id,
+                class_id=self.class_id,
+                status='approved',
+            ))
+            db.session.commit()
+
+            attendance_date = __import__('datetime').date(2026, 9, 1)
+            db.session.add(__import__('app').Attendance(
+                student_id=student.id,
+                class_id=self.class_id,
+                date=attendance_date,
+                status='present',
+                notes='On time',
+                recorded_by=teacher.id,
+            ))
+            db.session.commit()
+            teacher_id = teacher.id
+
+        with self.client.session_transaction() as session:
+            session['_user_id'] = str(teacher_id)
+            session['_fresh'] = True
+
+        response = self.client.get('/teacher/attendance')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Attendance History', response.data)
+        self.assertIn(b'History Student', response.data)
+        self.assertIn(b'present', response.data.lower())
+
     def test_site_sets_csp_without_unsafe_eval(self):
         response = self.client.get('/')
 

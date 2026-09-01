@@ -1731,11 +1731,19 @@ def teacher_attendance():
         for school_class in teacher_classes
     }
 
+    attendance_history = []
+    if teacher_classes:
+        attendance_history = Attendance.query.filter(
+            Attendance.class_id.in_([school_class.id for school_class in teacher_classes]),
+            Attendance.recorded_by == teacher.id,
+        ).order_by(Attendance.date.desc(), Attendance.created_at.desc()).all()
+
     return render_template(
         'teacher/attendance.html',
         teacher=teacher,
         teacher_classes=teacher_classes,
         teacher_class_counts=teacher_class_counts,
+        attendance_history=attendance_history,
     )
 
 @app.route('/teacher/attendance/<int:class_id>', methods=['GET', 'POST'])
