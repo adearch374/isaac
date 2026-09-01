@@ -1683,13 +1683,17 @@ def student_results():
     if current_user.role != 'student':
         flash('Access denied', 'error')
         return redirect(url_for('index'))
-    
+
     student = Student.query.get(current_user.id)
+    if not student:
+        flash('Student profile not found. Please contact the administrator.', 'error')
+        return redirect(url_for('index'))
+
     approved_results = Result.query.filter_by(
         student_id=student.id,
         status='approved'
     ).order_by(Result.created_at.desc()).all()
-    
+
     return render_template('student/results.html', student=student, results=approved_results)
 
 # Teacher Profile

@@ -427,6 +427,96 @@ class ClassEditRouteTests(unittest.TestCase):
             request_count = __import__('app').TeacherSubjectRequest.query.filter_by(teacher_id=teacher_id).count()
             self.assertEqual(request_count, 2)
 
+    def test_student_results_page_renders_approved_results(self):
+        with app.app_context():
+            teacher = Teacher(
+                username='teacher_results_view',
+                password_hash=generate_password_hash('secret123'),
+                role='teacher',
+                full_name='Results Teacher',
+                email='results_teacher@example.com',
+                phone='111',
+                department='Math',
+                qualification='BSc',
+                teacher_id='TCHRESULTS',
+                is_active=True,
+                must_change_password=False,
+            )
+            db.session.add(teacher)
+            db.session.commit()
+
+            student = Student(
+                username='student_results_view',
+                password_hash=generate_password_hash('secret123'),
+                role='student',
+                full_name='Results Student',
+                email='results_student@example.com',
+                phone='222',
+                student_id='STDRESULTS001',
+                class_id=self.class_id,
+                is_active=True,
+                must_change_password=False,
+            )
+            db.session.add(student)
+            db.session.commit()
+
+            subject = __import__('app').Subject(
+                class_id=self.class_id,
+                name='Mathematics',
+                code='MATH3',
+                description='Math',
+                is_active=True,
+            )
+            db.session.add(subject)
+            db.session.commit()
+
+            session_record = __import__('app').AcademicSession(
+                name='2026/2027',
+                start_date=__import__('datetime').date(2026, 9, 1),
+                end_date=__import__('datetime').date(2027, 7, 31),
+                is_active=True,
+            )
+            db.session.add(session_record)
+            db.session.commit()
+
+            term = __import__('app').Term(
+                name='First Term',
+                session_id=session_record.id,
+                start_date=__import__('datetime').date(2026, 9, 1),
+                end_date=__import__('datetime').date(2026, 12, 20),
+                is_active=True,
+            )
+            db.session.add(term)
+            db.session.commit()
+
+            db.session.add(__import__('app').Result(
+                student_id=student.id,
+                subject_id=subject.id,
+                class_id=self.class_id,
+                teacher_id=teacher.id,
+                term_id=term.id,
+                session_id=session_record.id,
+                ca_score=70.0,
+                exam_score=80.0,
+                total_score=150.0,
+                grade='A',
+                remark='Excellent',
+                status='approved',
+                created_at=__import__('datetime').datetime.utcnow(),
+            ))
+            db.session.commit()
+            student_id = student.id
+
+        with self.client.session_transaction() as session:
+            session['_user_id'] = str(student_id)
+            session['_fresh'] = True
+
+        response = self.client.get('/student/my-results')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'My Results', response.data)
+        self.assertIn(b'Mathematics', response.data)
+        self.assertIn(b'Approved', response.data)
+
     def test_student_can_select_only_subject_from_own_class(self):
         with app.app_context():
             student = Student(
