@@ -125,6 +125,10 @@ class Student(User):
     class_id = db.Column(db.Integer, db.ForeignKey('class.id'))
     student_class = db.relationship('Class', backref='students')
 
+    @property
+    def class_assigned(self):
+        return self.student_class
+
     __mapper_args__ = {
         'polymorphic_identity': 'student',
     }

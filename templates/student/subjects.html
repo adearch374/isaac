@@ -183,6 +183,7 @@
                 {% if student.class_assigned %}
                     <div style="margin-bottom: 20px;">
                         <h3>Select your subject</h3>
+                        <p><strong>Class:</strong> {{ student.class_assigned.name }}</p>
                         <form method="POST" action="{{ url_for('student_select_subject') }}">
                             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                                 <select name="subject_id" required style="min-width: 260px; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
@@ -197,29 +198,39 @@
                     </div>
 
                     <div class="table-responsive">
-<table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Chosen Subject</th>
-                                <th>Code</th>
-                                <th>Class</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% if selected_choice %}
+                        <table class="data-table">
+                            <thead>
                                 <tr>
-                                    <td>{{ selected_choice.subject.name }}</td>
-                                    <td>{{ selected_choice.subject.code }}</td>
-                                    <td>{{ selected_choice.class_assigned.name }}</td>
+                                    <th>Subject</th>
+                                    <th>Code</th>
+                                    <th>Class</th>
+                                    <th>Status</th>
                                 </tr>
-                            {% else %}
-                                <tr>
-                                    <td colspan="3" style="text-align: center;">No subject selected yet</td>
-                                </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
-</div>
+                            </thead>
+                            <tbody>
+                                {% if available_subjects %}
+                                    {% for subject in available_subjects %}
+                                        <tr>
+                                            <td>{{ subject.name }}</td>
+                                            <td>{{ subject.code }}</td>
+                                            <td>{{ student.class_assigned.name }}</td>
+                                            <td>
+                                                {% if selected_choice and selected_choice.subject_id == subject.id %}
+                                                    Selected
+                                                {% else %}
+                                                    Available
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" style="text-align: center;">No subjects have been added for this class yet.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
                 {% else %}
                     <div class="empty-state">
                         <div class="empty-state-icon">📚</div>
