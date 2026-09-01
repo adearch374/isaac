@@ -1892,21 +1892,31 @@ def student_subjects():
         return redirect(url_for('index'))
 
     student = Student.query.get(current_user.id)
-    if student and student.class_id:
-        available_subjects = Subject.query.filter_by(class_id=student.class_id, is_active=True).order_by(Subject.name.asc()).all()
-        available_subject_ids = {subject.id for subject in available_subjects}
-        existing_subject_ids = {choice.subject_id for choice in StudentSubjectChoice.query.filter_by(student_id=student.id).all()}
+    selected_subjects = set()
+    available_subjects = []
 
-        if existing_subject_ids != available_subject_ids:
-            StudentSubjectChoice.query.filter_by(student_id=student.id).delete()
-            for subject in available_subjects:
-                db.session.add(StudentSubjectChoice(student_id=student.id, subject_id=subject.id, class_id=student.class_id))
-            db.session.commit()
+    try:
+        if student and student.class_id:
+            available_subjects = Subject.query.filter_by(class_id=student.class_id, is_active=True).order_by(Subject.name.asc()).all()
+            available_subject_ids = {subject.id for subject in available_subjects}
+            existing_subject_ids = {choice.subject_id for choice in StudentSubjectChoice.query.filter_by(student_id=student.id).all()}
 
-        selected_subjects = available_subject_ids
-    else:
-        selected_subjects = set()
-        available_subjects = []
+            if existing_subject_ids != available_subject_ids:
+                StudentSubjectChoice.query.filter_by(student_id=student.id).delete()
+                for subject in available_subjects:
+                    db.session.add(StudentSubjectChoice(student_id=student.id, subject_id=subject.id, class_id=student.class_id))
+                db.session.commit()
+
+            selected_subjects = available_subject_ids
+    except Exception:
+        db.session.rollback()
+        flash('Unable to load your class subjects right now. Please try again.', 'error')
+        if student and student.class_id:
+            available_subjects = Subject.query.filter_by(class_id=student.class_id, is_active=True).order_by(Subject.name.asc()).all()
+        else:
+            available_subjects = []
+        selected_subjects = {subject.id for subject in available_subjects}
+
     return render_template('student/subjects.html', student=student, available_subjects=available_subjects, selected_subjects=selected_subjects)
 
 @app.route('/student/subjects/select', methods=['POST'])
@@ -1926,13 +1936,12 @@ def student_select_subject():
         flash('No subjects have been added for your class yet.', 'error')
         return redirect(url_for('student_subjects'))
 
-    StudentSubjectChoice.query.filter_by(student_id=student.id).delete()
-    for subject_id in sorted(available_subject_ids):
-        db.session.add(StudentSubjectChoice(student_id=student.id, subject_id=subject_id, class_id=student.class_id))
-
     try:
+        StudentSubjectChoice.query.filter_by(student_id=student.id).delete()
+        for subject_id in sorted(available_subject_ids):
+            db.session.add(StudentSubjectChoice(student_id=student.id, subject_id=subject_id, class_id=student.class_id))
         db.session.commit()
-    except IntegrityError:
+    except Exception:
         db.session.rollback()
         flash('Unable to save your class subjects automatically. Please try again.', 'error')
         return redirect(url_for('student_subjects'))
