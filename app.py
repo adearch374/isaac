@@ -193,6 +193,29 @@ class StudentSubjectChoice(db.Model):
         db.UniqueConstraint('student_id', 'subject_id', name='uq_student_subject_choice'),
     )
 
+
+def cleanup_duplicate_student_subject_choices(student_id=None):
+    duplicate_rows = db.session.execute(text('''
+        SELECT student_id, subject_id, MIN(id) AS keep_id
+        FROM student_subject_choice
+        WHERE (:student_id IS NULL OR student_id = :student_id)
+        GROUP BY student_id, subject_id
+        HAVING COUNT(*) > 1
+    '''), {'student_id': student_id}).fetchall()
+
+    for duplicate_row in duplicate_rows:
+        db.session.execute(text('''
+            DELETE FROM student_subject_choice
+            WHERE student_id = :student_id AND subject_id = :subject_id AND id != :keep_id
+        '''), {
+            'student_id': duplicate_row[0],
+            'subject_id': duplicate_row[1],
+            'keep_id': duplicate_row[2],
+        })
+
+    db.session.commit()
+
+
 class AcademicSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), unique=True, nullable=False)  # e.g., "2026/2027"
@@ -1897,6 +1920,7 @@ def student_subjects():
 
     try:
         if student and student.class_id:
+            cleanup_duplicate_student_subject_choices(student.id)
             available_subjects = Subject.query.filter_by(class_id=student.class_id, is_active=True).order_by(Subject.name.asc()).all()
             available_subject_ids = {subject.id for subject in available_subjects}
             existing_subject_ids = {choice.subject_id for choice in StudentSubjectChoice.query.filter_by(student_id=student.id).all()}
@@ -1937,6 +1961,7 @@ def student_select_subject():
         return redirect(url_for('student_subjects'))
 
     try:
+        cleanup_duplicate_student_subject_choices(student.id)
         StudentSubjectChoice.query.filter_by(student_id=student.id).delete()
         for subject_id in sorted(available_subject_ids):
             db.session.add(StudentSubjectChoice(student_id=student.id, subject_id=subject_id, class_id=student.class_id))
