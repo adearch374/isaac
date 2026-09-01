@@ -181,27 +181,42 @@
             <!-- Subjects Table -->
             <div class="table-container">
                 {% if student.class_assigned %}
+                    <div style="margin-bottom: 20px;">
+                        <h3>Select your subject</h3>
+                        <form method="POST" action="{{ url_for('student_select_subject') }}">
+                            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                                <select name="subject_id" required style="min-width: 260px; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+                                    <option value="">Choose a subject from your class</option>
+                                    {% for subject in available_subjects %}
+                                        <option value="{{ subject.id }}" {% if selected_choice and selected_choice.subject_id == subject.id %}selected{% endif %}>{{ subject.name }} ({{ subject.code }})</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-primary" style="background: #1e3c72; color: white; border: none; padding: 10px 18px; border-radius: 5px; cursor: pointer;">Save Subject</button>
+                            </div>
+                        </form>
+                    </div>
+
                     <div class="table-responsive">
 <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Subject</th>
+                                <th>Chosen Subject</th>
                                 <th>Code</th>
-                                <th>Teacher</th>
+                                <th>Class</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for assignment in student.class_assigned.subject_assignments %}
+                            {% if selected_choice %}
                                 <tr>
-                                    <td>{{ assignment.subject.name }}</td>
-                                    <td>{{ assignment.subject.code }}</td>
-                                    <td>{{ assignment.teacher.full_name if assignment.teacher else 'Not Assigned' }}</td>
+                                    <td>{{ selected_choice.subject.name }}</td>
+                                    <td>{{ selected_choice.subject.code }}</td>
+                                    <td>{{ selected_choice.class_assigned.name }}</td>
                                 </tr>
                             {% else %}
                                 <tr>
-                                    <td colspan="3" style="text-align: center;">No subjects assigned to your class yet</td>
+                                    <td colspan="3" style="text-align: center;">No subject selected yet</td>
                                 </tr>
-                            {% endfor %}
+                            {% endif %}
                         </tbody>
                     </table>
 </div>

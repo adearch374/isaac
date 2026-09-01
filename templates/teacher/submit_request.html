@@ -293,16 +293,6 @@
 
                 <form method="POST" action="{{ url_for('submit_teaching_request') }}">
                     <div class="form-group">
-                        <label for="subject_id">Subject</label>
-                        <select id="subject_id" name="subject_id" required>
-                            <option value="">Select a subject</option>
-                            {% for subject in subjects %}
-                                <option value="{{ subject.id }}">{{ subject.class_assigned.name if subject.class_assigned else 'Unassigned' }} - {{ subject.name }} ({{ subject.code }})</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="form-group">
                         <label for="class_id">Class</label>
                         <select id="class_id" name="class_id" required>
                             <option value="">Select a class</option>
@@ -310,6 +300,16 @@
                                 <option value="{{ class.id }}">{{ class.name }} - {{ class.level or 'General' }}</option>
                             {% endfor %}
                         </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subject_ids">Subjects</label>
+                        <select id="subject_ids" name="subject_ids" multiple size="8" required>
+                            {% for subject in subjects %}
+                                <option value="{{ subject.id }}">{{ subject.class_assigned.name if subject.class_assigned else 'Unassigned' }} - {{ subject.name }} ({{ subject.code }})</option>
+                            {% endfor %}
+                        </select>
+                        <small style="display:block; margin-top:8px; color:#666;">Hold Ctrl/Cmd to select more than one subject.</small>
                     </div>
 
                     <div class="form-actions">

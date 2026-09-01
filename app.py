@@ -169,6 +169,18 @@ class TeacherSubjectRequest(db.Model):
     class_assigned = db.relationship('Class', backref='teacher_requests')
     reviewer = db.relationship('Admin', backref='reviewed_requests')
 
+class StudentSubjectChoice(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False, unique=True)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
+    class_id = db.Column(db.Integer, db.ForeignKey('class.id'), nullable=False)
+    selected_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    student = db.relationship('Student', backref='selected_subjects')
+    subject = db.relationship('Subject', backref='selected_students')
+    class_assigned = db.relationship('Class', backref='selected_subjects')
+
 class AcademicSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), unique=True, nullable=False)  # e.g., "2026/2027"
@@ -1157,35 +1169,54 @@ def submit_teaching_request():
 
     if request.method == 'POST':
         try:
-            subject_id = int(request.form.get('subject_id'))
             class_id = int(request.form.get('class_id'))
         except (TypeError, ValueError):
-            flash('Please select a valid subject and class before submitting your request.', 'error')
+            flash('Please select a valid class before submitting your request.', 'error')
             return redirect(url_for('teacher_requests'))
 
-        subject = Subject.query.get(subject_id)
         school_class = Class.query.get(class_id)
-        if not subject or not school_class:
-            flash('The selected subject or class could not be found.', 'error')
+        if not school_class:
+            flash('The selected class could not be found.', 'error')
             return redirect(url_for('teacher_requests'))
 
-        # Check if request already exists
-        existing_request = TeacherSubjectRequest.query.filter_by(
-            teacher_id=teacher.id,
-            subject_id=subject_id,
-            class_id=class_id
-        ).first()
+        submitted_subject_ids = request.form.getlist('subject_ids')
+        if not submitted_subject_ids:
+            submitted_subject_ids = [request.form.get('subject_id')] if request.form.get('subject_id') else []
 
-        if existing_request:
-            if existing_request.status == 'rejected':
-                existing_request.status = 'pending'
-                existing_request.requested_at = datetime.utcnow()
-                log_activity(teacher.id, 'request_resubmit', 'TeacherSubjectRequest', existing_request.id,
-                             f'Teacher resubmitted request for subject {subject_id} and class {class_id}')
-                flash('Your request has been resubmitted for approval', 'success')
-            else:
-                flash('You already have a request for this subject and class combination', 'warning')
-        else:
+        valid_subject_ids = []
+        for raw_subject_id in submitted_subject_ids:
+            try:
+                subject_id = int(raw_subject_id)
+            except (TypeError, ValueError):
+                continue
+            subject = Subject.query.get(subject_id)
+            if subject and subject.is_active:
+                valid_subject_ids.append(subject_id)
+
+        if not valid_subject_ids:
+            flash('Please select at least one valid subject before submitting your request.', 'error')
+            return redirect(url_for('teacher_requests'))
+
+        created_count = 0
+        for subject_id in valid_subject_ids:
+            subject = Subject.query.get(subject_id)
+            if not subject:
+                continue
+
+            existing_request = TeacherSubjectRequest.query.filter_by(
+                teacher_id=teacher.id,
+                subject_id=subject_id,
+                class_id=class_id
+            ).first()
+
+            if existing_request:
+                if existing_request.status == 'rejected':
+                    existing_request.status = 'pending'
+                    existing_request.requested_at = datetime.utcnow()
+                    log_activity(teacher.id, 'request_resubmit', 'TeacherSubjectRequest', existing_request.id,
+                                 f'Teacher resubmitted request for subject {subject_id} and class {class_id}')
+                continue
+
             new_request = TeacherSubjectRequest(
                 teacher_id=teacher.id,
                 subject_id=subject_id,
@@ -1193,9 +1224,9 @@ def submit_teaching_request():
                 status='pending'
             )
             db.session.add(new_request)
+            created_count += 1
             log_activity(teacher.id, 'request_create', 'TeacherSubjectRequest', new_request.id,
                          f'Teacher submitted request for subject {subject_id} and class {class_id}')
-            flash('Your teaching request has been submitted for approval', 'success')
 
         try:
             db.session.commit()
@@ -1204,6 +1235,10 @@ def submit_teaching_request():
             flash('Unable to submit request. Please contact the administrator.', 'error')
             return redirect(url_for('teacher_requests'))
 
+        if created_count > 0:
+            flash(f'Your teaching request for {created_count} subject(s) has been submitted for approval', 'success')
+        else:
+            flash('All selected subject requests were already submitted.', 'warning')
         return redirect(url_for('teacher_requests'))
 
     return render_template('teacher/submit_request.html', teacher=teacher, subjects=subjects, classes=classes)
@@ -1839,9 +1874,48 @@ def student_subjects():
     if current_user.role != 'student':
         flash('Access denied', 'error')
         return redirect(url_for('index'))
-    
+
     student = Student.query.get(current_user.id)
-    return render_template('student/subjects.html', student=student)
+    selected_choice = StudentSubjectChoice.query.filter_by(student_id=student.id).first() if student else None
+    available_subjects = Subject.query.filter_by(class_id=student.class_id, is_active=True).order_by(Subject.name.asc()).all() if student and student.class_id else []
+    return render_template('student/subjects.html', student=student, available_subjects=available_subjects, selected_choice=selected_choice)
+
+@app.route('/student/subjects/select', methods=['POST'])
+@login_required
+def student_select_subject():
+    if current_user.role != 'student':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+
+    student = Student.query.get(current_user.id)
+    if not student or not student.class_id:
+        flash('You must be assigned to a class before selecting a subject.', 'error')
+        return redirect(url_for('student_subjects'))
+
+    try:
+        subject_id = int(request.form.get('subject_id'))
+    except (TypeError, ValueError):
+        flash('Please select a valid subject.', 'error')
+        return redirect(url_for('student_subjects'))
+
+    subject = Subject.query.filter_by(id=subject_id, class_id=student.class_id, is_active=True).first()
+    if not subject:
+        flash('You can only choose a subject from your own class.', 'error')
+        return redirect(url_for('student_subjects'))
+
+    existing_choice = StudentSubjectChoice.query.filter_by(student_id=student.id).first()
+    if existing_choice:
+        existing_choice.subject_id = subject.id
+        existing_choice.class_id = student.class_id
+        existing_choice.updated_at = datetime.utcnow()
+        selected_choice = existing_choice
+    else:
+        selected_choice = StudentSubjectChoice(student_id=student.id, subject_id=subject.id, class_id=student.class_id)
+        db.session.add(selected_choice)
+
+    db.session.commit()
+    flash('Your subject selection has been saved.', 'success')
+    return redirect(url_for('student_subjects'))
 
 # Student Attendance
 @app.route('/student/attendance')
