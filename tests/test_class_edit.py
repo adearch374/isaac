@@ -592,6 +592,114 @@ class ClassEditRouteTests(unittest.TestCase):
             self.assertEqual({choice.subject_id for choice in choices}, {same_class_subject_id, same_class_subject_two_id})
             self.assertTrue(all(choice.class_id == self.class_id for choice in choices))
 
+    def test_student_dashboard_shows_selected_subject_count(self):
+        with app.app_context():
+            student = Student(
+                username='student_dashboard_subject_count',
+                password_hash=generate_password_hash('secret123'),
+                role='student',
+                full_name='Dashboard Subject Student',
+                email='dashboard_subject@example.com',
+                phone='777',
+                student_id='STDDASH001',
+                class_id=self.class_id,
+                is_active=True,
+                must_change_password=False,
+            )
+            db.session.add(student)
+            db.session.commit()
+
+            subjects = [
+                __import__('app').Subject(class_id=self.class_id, name='Physics', code='PHY', description='Physics', is_active=True),
+                __import__('app').Subject(class_id=self.class_id, name='Chemistry', code='CHE', description='Chemistry', is_active=True),
+            ]
+            db.session.add_all(subjects)
+            db.session.commit()
+
+            db.session.add_all([
+                __import__('app').StudentSubjectChoice(student_id=student.id, subject_id=subjects[0].id, class_id=self.class_id),
+                __import__('app').StudentSubjectChoice(student_id=student.id, subject_id=subjects[1].id, class_id=self.class_id),
+            ])
+            db.session.commit()
+            student_id = student.id
+
+        with self.client.session_transaction() as session:
+            session['_user_id'] = str(student_id)
+            session['_fresh'] = True
+
+        response = self.client.get('/student/dashboard')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'<h3>2</h3>', response.data)
+        self.assertIn(b'Subjects', response.data)
+
+    def test_student_repeated_save_cleans_duplicate_rows_before_commit(self):
+        with app.app_context():
+            student = Student(
+                username='student_duplicate_cleanup',
+                password_hash=generate_password_hash('secret123'),
+                role='student',
+                full_name='Duplicate Cleanup Student',
+                email='duplicate_cleanup@example.com',
+                phone='888',
+                student_id='STDDUP001',
+                class_id=self.class_id,
+                is_active=True,
+                must_change_password=False,
+            )
+            db.session.add(student)
+            db.session.commit()
+
+            subject = __import__('app').Subject(
+                class_id=self.class_id,
+                name='Agriculture',
+                code='AGR',
+                description='Agriculture',
+                is_active=True,
+            )
+            db.session.add(subject)
+            db.session.commit()
+
+            db.session.execute(__import__('app').text('DROP TABLE IF EXISTS student_subject_choice'))
+            db.session.execute(__import__('app').text('''
+                CREATE TABLE student_subject_choice (
+                    id INTEGER NOT NULL PRIMARY KEY,
+                    student_id INTEGER NOT NULL,
+                    subject_id INTEGER NOT NULL,
+                    class_id INTEGER NOT NULL,
+                    selected_at DATETIME,
+                    updated_at DATETIME,
+                    FOREIGN KEY (student_id) REFERENCES student (id),
+                    FOREIGN KEY (subject_id) REFERENCES subject (id),
+                    FOREIGN KEY (class_id) REFERENCES class (id)
+                )
+            '''))
+            subject_id = subject.id
+            db.session.execute(__import__('app').text('''
+                INSERT INTO student_subject_choice (student_id, subject_id, class_id) VALUES (:student_id, :subject_id, :class_id)
+            '''), {'student_id': student.id, 'subject_id': subject_id, 'class_id': self.class_id})
+            db.session.execute(__import__('app').text('''
+                INSERT INTO student_subject_choice (student_id, subject_id, class_id) VALUES (:student_id, :subject_id, :class_id)
+            '''), {'student_id': student.id, 'subject_id': subject_id, 'class_id': self.class_id})
+            db.session.commit()
+            student_id = student.id
+
+        with self.client.session_transaction() as session:
+            session['_user_id'] = str(student_id)
+            session['_fresh'] = True
+
+        response = self.client.post(
+            '/student/subjects/select',
+            data={'subject_ids': [str(subject_id)]},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/student/subjects', response.headers.get('Location', ''))
+
+        with app.app_context():
+            choices = __import__('app').StudentSubjectChoice.query.filter_by(student_id=student_id, subject_id=subject_id).all()
+            self.assertEqual(len(choices), 1)
+
     def test_site_sets_csp_without_unsafe_eval(self):
         response = self.client.get('/')
 

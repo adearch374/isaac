@@ -1086,8 +1086,8 @@ def student_dashboard():
         flash('Student record not found', 'error')
         return redirect(url_for('index'))
     
-    # Get student's academic information
-    subjects_count = db.session.query(Result.subject_id).filter_by(student_id=student.id).distinct().count()
+    # Get the student's current subject selections, not the number of result records.
+    subjects_count = db.session.query(StudentSubjectChoice.subject_id).filter_by(student_id=student.id).distinct().count()
     recent_results = Result.query.filter_by(student_id=student.id).order_by(Result.created_at.desc()).limit(5).all()
     
     current_session = AcademicSession.query.filter_by(is_active=True).first()
@@ -1932,6 +1932,17 @@ def student_select_subject():
         flash('You can only choose subjects from your own class.', 'error')
         return redirect(url_for('student_subjects'))
 
+    db.session.execute(text('''
+        DELETE FROM student_subject_choice
+        WHERE student_id = :student_id
+          AND id NOT IN (
+              SELECT MIN(id)
+              FROM student_subject_choice
+              WHERE student_id = :student_id
+              GROUP BY student_id, subject_id
+          )
+    '''), {'student_id': student.id})
+
     for choice in existing_choices:
         if choice.subject_id not in selected_ids:
             db.session.delete(choice)
@@ -1944,8 +1955,22 @@ def student_select_subject():
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        flash('Unable to save your subject selection because one or more choices already exist. Please try again.', 'error')
-        return redirect(url_for('student_subjects'))
+        db.session.execute(text('''
+            DELETE FROM student_subject_choice
+            WHERE student_id = :student_id
+              AND id NOT IN (
+                  SELECT MIN(id)
+                  FROM student_subject_choice
+                  WHERE student_id = :student_id
+                  GROUP BY student_id, subject_id
+              )
+        '''), {'student_id': student.id})
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash('Unable to save your subject selection because one or more choices already exist. Please try again.', 'error')
+            return redirect(url_for('student_subjects'))
 
     flash('Your subject selections have been saved.', 'success')
     return redirect(url_for('student_subjects'))
@@ -2707,6 +2732,23 @@ def init_db():
                     '''))
                     db.session.execute(text('DROP TABLE student_subject_choice_old'))
                     db.session.commit()
+
+                duplicate_rows = db.session.execute(text('''
+                    SELECT student_id, subject_id, MIN(id) AS keep_id
+                    FROM student_subject_choice
+                    GROUP BY student_id, subject_id
+                    HAVING COUNT(*) > 1
+                ''')).fetchall()
+                for duplicate_row in duplicate_rows:
+                    db.session.execute(text('''
+                        DELETE FROM student_subject_choice
+                        WHERE student_id = :student_id AND subject_id = :subject_id AND id != :keep_id
+                    '''), {
+                        'student_id': duplicate_row[0],
+                        'subject_id': duplicate_row[1],
+                        'keep_id': duplicate_row[2],
+                    })
+                db.session.commit()
 
         subject_columns = {column['name'] for column in inspect(db.engine).get_columns('subject')}
         if 'class_id' not in subject_columns:
