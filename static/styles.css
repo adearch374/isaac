@@ -1082,6 +1082,165 @@ body {
     }
 }
 
+.hero-photo-card {
+    position: relative;
+    z-index: 1;
+    width: min(420px, 100%);
+}
+
+.hero-photo-placeholder {
+    min-height: 360px;
+    border-radius: 28px 28px 28px 8px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 100%);
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px 24px;
+    gap: 16px;
+    color: #fff;
+}
+
+.hero-photo-placeholder span {
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #ffd76a;
+}
+
+.hero-photo-placeholder small {
+    max-width: 240px;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+}
+
+.empty-state {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    color: #555;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.08);
+}
+
+.admissions {
+    padding: 100px 20px;
+    background: linear-gradient(135deg, #f7f9ff 0%, #edf2ff 100%);
+}
+
+.admissions h2,
+.testimonials h2 {
+    text-align: center;
+    font-size: 3rem;
+    margin-bottom: 3rem;
+    color: #667eea;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.admissions-grid,
+.testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.admission-card,
+.testimonial-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.12);
+    border: 2px solid rgba(102, 126, 234, 0.08);
+}
+
+.admission-card h3 {
+    color: #1e3c72;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.admission-card ul {
+    list-style: none;
+    display: grid;
+    gap: 0.8rem;
+}
+
+.admission-card li {
+    position: relative;
+    padding-left: 1.5rem;
+    color: #555;
+    line-height: 1.7;
+}
+
+.admission-card li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #667eea;
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.testimonials {
+    padding: 100px 20px;
+    background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+}
+
+.testimonial-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+.testimonial-quote {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: #333;
+    font-style: italic;
+}
+
+.testimonial-author {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-top: 1rem;
+    border-top: 2px solid #eaeef6;
+}
+
+.testimonial-author strong {
+    color: #1e3c72;
+}
+
+.testimonial-author span {
+    color: #667eea;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08rem;
+}
+
+.map-wrapper {
+    margin-top: 1.5rem;
+    overflow: hidden;
+    border-radius: 18px;
+    border: 2px solid #dfe8ff;
+    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.12);
+}
+
+.map-wrapper iframe {
+    width: 100%;
+    min-height: 280px;
+    border: 0;
+    display: block;
+}
+
 /* Contact Section */
 .contact {
     padding: 100px 20px;

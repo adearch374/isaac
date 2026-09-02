@@ -1,7 +1,8 @@
 import unittest
+from datetime import datetime
 from unittest.mock import patch
 
-from app import app, db, Class, User, Teacher, Student, generate_password_hash
+from app import app, db, Class, User, Teacher, Student, News, generate_password_hash
 
 
 class ClassEditRouteTests(unittest.TestCase):
@@ -60,6 +61,44 @@ class ClassEditRouteTests(unittest.TestCase):
             self.assertEqual(updated_class.level, 'Senior Secondary')
             self.assertEqual(updated_class.capacity, 45)
             self.assertTrue(updated_class.is_active)
+
+    def test_homepage_renders_published_news_and_achievement_items(self):
+        with app.app_context():
+            db.session.add_all([
+                News(
+                    title='School update',
+                    content='Campus improvement underway.',
+                    category='general',
+                    image_url='',
+                    is_published=True,
+                    published_at=datetime.utcnow(),
+                ),
+                News(
+                    title='Science excellence',
+                    content='Students won a regional science prize.',
+                    category='achievements',
+                    image_url='',
+                    is_published=True,
+                    published_at=datetime.utcnow(),
+                ),
+                News(
+                    title='Draft notice',
+                    content='Not yet published.',
+                    category='general',
+                    image_url='',
+                    is_published=False,
+                    published_at=None,
+                ),
+            ])
+            db.session.commit()
+
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        html = response.get_data(as_text=True)
+        self.assertIn('School update', html)
+        self.assertIn('Science excellence', html)
+        self.assertNotIn('Draft notice', html)
+        self.assertIn('Latest News & Achievements', html)
 
     def test_add_subject_logs_without_nested_commit(self):
         with self.client.session_transaction() as session:

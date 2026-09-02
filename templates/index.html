@@ -43,8 +43,14 @@
             <p>Nurturing Minds, Building Futures</p>
             <p class="hero-subtitle">Providing quality education with a focus on academic excellence, character development, and holistic growth</p>
             <div class="hero-buttons">
-                <a href="#contact" class="btn btn-primary">Enroll Now</a>
+                <a href="#admissions" class="btn btn-primary">Enroll Now</a>
                 <a href="#about" class="btn btn-secondary">Learn More</a>
+            </div>
+        </div>
+        <div class="hero-photo-card" aria-label="Campus photo placeholder">
+            <div class="hero-photo-placeholder">
+                <span>Campus photo update needed</span>
+                <small>Photos of student life and campus facilities are still being collected for the homepage.</small>
             </div>
         </div>
     </section>
@@ -66,19 +72,19 @@
                             <p>Founded</p>
                         </div>
                         <div class="stat">
-                            <h3>100%</h3>
-                            <p>Commitment</p>
+                            <h3>Holistic</h3>
+                            <p>Learning</p>
                         </div>
                     </div>
                 </div>
-                    <div class="about-image">
-                        <div class="campus-placeholder">
-                            <div class="campus-placeholder-glow"></div>
-                            <img src="{{ url_for('static', filename='logo.png') }}" alt="La Paix Group of Schools logo" class="campus-logo">
-                            <span class="campus-placeholder-label">Our campus story</span>
-                            <strong>Growing with purpose</strong>
-                            <small>School photos coming soon</small>
-                        </div>
+                <div class="about-image">
+                    <div class="campus-placeholder">
+                        <div class="campus-placeholder-glow"></div>
+                        <img src="{{ url_for('static', filename='logo.png') }}" alt="La Paix Group of Schools logo" class="campus-logo">
+                        <span class="campus-placeholder-label">Our campus story</span>
+                        <strong>Growing with purpose</strong>
+                        <small>School photos are still being collected for launch.</small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -193,94 +199,119 @@
                 <button class="news-tab active" data-tab="news">School News</button>
                 <button class="news-tab" data-tab="achievements">Academic Achievements</button>
             </div>
-            
+
             <div class="news-content active" id="news-content">
-                <div class="news-grid">
-                    <div class="news-card featured">
-                        <div class="news-image">
-                            <div class="news-placeholder">🏆</div>
-                            <div class="news-badge">Featured</div>
-                        </div>
-                        <div class="news-content-inner">
-                            <div class="news-category">Academic Excellence</div>
-                            <h3>La Paix Students Participated in a regional Mathematics Competition</h3>
-                            <p>Our students secured second place in the Regional Mathematics competetion. </p>
-                            <p>We are working harder improve the student and achieveing first place and move from the regional to states and national </p>
-                            <p>And Global is the goal </p>
-                            <div class="news-meta">
-                                <span class="news-date">August 15, 2026</span>
-                                <a href="#" class="read-more">Read More →</a>
-                            </div>
-                        </div>
+                {% if news_articles %}
+                    <div class="news-grid">
+                        {% for news in news_articles %}
+                            <article class="news-card {% if loop.first %}featured{% endif %}">
+                                <div class="news-image">
+                                    {% if news.image_url %}
+                                        <img src="{{ news.image_url }}" alt="{{ news.title }}" class="news-photo">
+                                    {% else %}
+                                        <div class="news-placeholder">📚</div>
+                                    {% endif %}
+                                    {% if loop.first %}
+                                        <div class="news-badge">Featured</div>
+                                    {% endif %}
+                                </div>
+                                <div class="news-content-inner">
+                                    <div class="news-category">{{ (news.category or 'general')|replace('_', ' ')|title }}</div>
+                                    <h3>{{ news.title }}</h3>
+                                    <p>{{ news.content|truncate(180, true, '...') }}</p>
+                                    <div class="news-meta">
+                                        <span class="news-date">{{ (news.published_at or news.created_at).strftime('%B %d, %Y') }}</span>
+                                        <a href="{{ url_for('view_news', news_id=news.id) }}" class="read-more">Read More →</a>
+                                    </div>
+                                </div>
+                            </article>
+                        {% endfor %}
                     </div>
-                    
-                    <div class="news-card">
-                        <div class="news-image">
-                            <div class="news-placeholder">🎭</div>
-                        </div>
-                        <div class="news-content-inner">
-                            <div class="news-category">Cultural Events</div>
-                            <h3>Annual Cultural Festival a Grand Success</h3>
-                            <p>The school's annual cultural festival showcased amazing talents in music, dance, and drama.</p>
-                            <div class="news-meta">
-                                <span class="news-date">August 10, 2026</span>
-                                <a href="#" class="read-more">Read More →</a>
-                            </div>
-                        </div>
+                {% else %}
+                    <div class="empty-state">
+                        <p>No school news has been published yet. Please check back soon for updates from La Paix Group of Schools.</p>
                     </div>
-                    
-                    <div class="news-card">
-                        <div class="news-image">
-                            <div class="news-placeholder">⚽</div>
-                        </div>
-                        <div class="news-content-inner">
-                            <div class="news-category">Sports</div>
-                            <h3>Football Team Wins Regional Championship</h3>
-                            <p>Our school football team defeated rivals to become the regional champions .</p>
-                            <div class="news-meta">
-                                <span class="news-date">August 5, 2026</span>
-                                <a href="#" class="read-more">Read More →</a>
-                            </div>
-                        </div>
+                {% endif %}
+            </div>
+
+            <div class="news-content" id="achievements-content">
+                {% if achievement_articles %}
+                    <div class="achievements-grid">
+                        {% for achievement in achievement_articles %}
+                            <article class="achievement-card {{ ['gold', 'silver', 'bronze'][loop.index0 % 3] }}">
+                                <div class="achievement-icon">{{ ['🏆', '🥈', '🎓'][loop.index0 % 3] }}</div>
+                                <h3>{{ achievement.title }}</h3>
+                                <p>{{ achievement.content|truncate(150, true, '...') }}</p>
+                                <div class="achievement-year">{{ (achievement.published_at or achievement.created_at).strftime('%Y') }}</div>
+                            </article>
+                        {% endfor %}
                     </div>
+                {% else %}
+                    <div class="empty-state">
+                        <p>No academic achievements have been published yet. Updates will appear here as they are shared.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Admissions Section -->
+    <section id="admissions" class="admissions">
+        <div class="container">
+            <h2>Admissions</h2>
+            <div class="admissions-grid">
+                <div class="admission-card">
+                    <h3>Entry Requirements</h3>
+                    <ul>
+                        <li>Completed application form and parent/guardian details.</li>
+                        <li>Most recent academic records or transfer information where applicable.</li>
+                        <li>Visit to the school for a brief introduction and guidance.</li>
+                    </ul>
+                </div>
+                <div class="admission-card">
+                    <h3>Application Process</h3>
+                    <ul>
+                        <li>Submit an enquiry through the contact form or school office.</li>
+                        <li>Meet with the admissions team for guidance and placement discussion.</li>
+                        <li>Complete the enrolment steps and receive final confirmation.</li>
+                    </ul>
+                </div>
+                <div class="admission-card">
+                    <h3>Key Dates</h3>
+                    <ul>
+                        <li>Applications are reviewed throughout the term.</li>
+                        <li>New intake announcements are shared by the school as they are confirmed.</li>
+                        <li>Families are encouraged to contact the office for upcoming orientation details.</li>
+                    </ul>
                 </div>
             </div>
-            
-            <div class="news-content" id="achievements-content">
-                <div class="achievements-grid">
-                    <div class="achievement-card silver">
-                        <div class="achievement-icon">🥈</div>
-                        <h3>Inter-School Debate Competition</h3>
-                        <p>Our debate team won silver at the State-level Inter-School Debate Competition</p>
-                        <div class="achievement-year">2026</div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="testimonials">
+        <div class="container">
+            <h2>Parent & Student Voices</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-quote">“The school creates a warm environment where children feel encouraged to learn, ask questions, and grow in confidence.”</div>
+                    <div class="testimonial-author">
+                        <strong>Parent of JSS2 student</strong>
+                        <span>Community feedback placeholder</span>
                     </div>
-                    
-                    <div class="achievement-card bronze">
-                        <div class="achievement-icon">🥉</div>
-                        <h3>Science Exhibition Awards</h3>
-                        <p>Multiple awards won at the Regional Science Exhibition</p>
-                        <div class="achievement-year">2026</div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-quote">“I appreciate how the teachers balance discipline with support and make learning practical and engaging.”</div>
+                    <div class="testimonial-author">
+                        <strong>Student leader</strong>
+                        <span>Sample quote pending approval</span>
                     </div>
-                    
-                    <div class="achievement-card gold">
-                        <div class="achievement-icon">🏆</div>
-                        <h3>Best School Award</h3>
-                        <p>Recognized as the Best School in Academic Excellence by Education Board</p>
-                        <div class="achievement-year">2025</div>
-                    </div>
-                    
-                    <div class="achievement-card silver">
-                        <div class="achievement-icon">🎓</div>
-                        <h3>100% University Placement</h3>
-                        <p>All graduating students secured admission to top universities</p>
-                        <div class="achievement-year">2025</div>
-                    </div>
-                    
-                    <div class="achievement-card bronze">
-                        <div class="achievement-icon">🌟</div>
-                        <h3>Environmental Leadership</h3>
-                        <p>Awarded for outstanding contributions to environmental awareness</p>
-                        <div class="achievement-year">2025</div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-quote">“The school’s emphasis on character, academics, and communication gives families confidence in their children’s progress.”</div>
+                    <div class="testimonial-author">
+                        <strong>Guardian</strong>
+                        <span>Sample testimonial for review</span>
                     </div>
                 </div>
             </div>
@@ -330,7 +361,7 @@
                     <h3>Get in Touch</h3>
                     <div class="contact-item">
                         <strong>📍 Address:</strong>
-                        <p>Ayedade community, sawmill,Papalanto,Ewekoro, Ogun state, Nigeria</p>
+                        <p>Ayedade community, Sawmill, Papalanto, Ewekoro, Ogun State, Nigeria</p>
                     </div>
                     <div class="contact-item">
                         <strong>📞 Phone:</strong>
@@ -338,11 +369,19 @@
                     </div>
                     <div class="contact-item">
                         <strong>📧 Email:</strong>
-                        <p>adewaleadeolu93@gmailcom</p>
+                        <p>lapaixnurandprysch@gmail.com</p>
                     </div>
                     <div class="contact-item">
                         <strong>🕐 Office Hours:</strong>
                         <p>Monday - Friday: 8:00 AM - 4:00 PM</p>
+                    </div>
+                    <div class="map-wrapper">
+                        <iframe
+                            src="https://www.google.com/maps?q=Ayedade%20community%2C%20Sawmill%2C%20Papalanto%2C%20Ewekoro%2C%20Ogun%20State%2C%20Nigeria&z=14&output=embed"
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"
+                            title="La Paix Group of Schools location map">
+                        </iframe>
                     </div>
                 </div>
                 <div class="contact-form">
@@ -392,9 +431,8 @@
                 <div class="footer-section">
                     <h3>Follow Us</h3>
                     <div class="social-links">
-                        <a href="#">Facebook</a>
-                        <a href="#">Tiktok</a>
-
+                        <a href="https://www.facebook.com/profile.php?id=61578475211365" target="_blank" rel="noopener noreferrer">Facebook</a>
+                        <a href="https://www.tiktok.com/@lapaixgroupofschools" target="_blank" rel="noopener noreferrer">TikTok</a>
                     </div>
                 </div>
             </div>
