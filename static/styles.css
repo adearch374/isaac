@@ -9,7 +9,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: #333;
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     min-height: 100vh;
 }
 
@@ -21,13 +21,13 @@ body {
 
 /* Navigation */
 .navbar {
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     color: white;
     padding: 1rem 0;
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 4px 20px rgba(215, 14, 116, 0.3);
+    box-shadow: 0 4px 20px rgba(22, 34, 63, 0.3);
     backdrop-filter: blur(10px);
 }
 
@@ -52,10 +52,7 @@ body {
 .nav-brand h1 {
     font-size: 1.5rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #C9A227;
 }
 
 .nav-menu {
@@ -80,7 +77,7 @@ body {
     left: 0;
     width: 0;
     height: 2px;
-    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%);
+    background: #C9A227;
     transition: width 0.3s;
 }
 
@@ -89,12 +86,12 @@ body {
 }
 
 .nav-menu a:hover {
-    color: #FFFFFF;
+    color: #C9A227;
 }
 
 .login-btn {
     background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%);
-    color: #D70E74 !important;
+    color: #16223F !important;
     padding: 10px 25px;
     border-radius: 25px;
     font-weight: 600;
@@ -123,7 +120,7 @@ body {
 
 /* Hero Section */
 .hero {
-    background: linear-gradient(135deg, rgba(215, 14, 116, 0.9) 0%, rgba(215, 14, 116, 0.9) 100%), 
+    background: linear-gradient(135deg, rgba(22, 34, 63, 0.9) 0%, rgba(22, 34, 63, 0.9) 100%), 
                 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%23ffffff" width="1200" height="600"/><circle cx="200" cy="200" r="150" fill="%23667eea" opacity="0.1"/><circle cx="1000" cy="400" r="200" fill="%23764ba2" opacity="0.1"/><circle cx="600" cy="300" r="100" fill="%23ffd700" opacity="0.1"/></svg>');
     background-size: cover;
     background-position: center;
@@ -207,14 +204,17 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%);
-    color: #D70E74;
-    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
+    color: #FFFFFF;
+    box-shadow: 0 6px 20px rgba(22, 34, 63, 0.4);
 }
 
 .btn-primary:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.5);
+    background: #C9A227 !important;
+    background-image: none !important;
+    color: #16223F !important;
+    box-shadow: 0 8px 25px rgba(201, 162, 39, 0.4);
 }
 
 .btn-secondary {
@@ -226,7 +226,7 @@ body {
 
 .btn-secondary:hover {
     background: white;
-    color: #D70E74;
+    color: #16223F;
     transform: translateY(-4px);
     box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
 }
@@ -234,14 +234,14 @@ body {
 /* About Section */
 .about {
     padding: 100px 20px;
-    background: #FDF3F8;
+    background: #F7F2E7;
 }
 
 .about h2 {
     text-align: center;
     font-size: 3rem;
     margin-bottom: 3rem;
-    color: #D70E74;
+    color: #16223F;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -255,7 +255,7 @@ body {
 }
 
 .about-text h3 {
-    color: #D70E74;
+    color: #16223F;
     font-size: 1.8rem;
     margin-bottom: 1.5rem;
     font-weight: 700;
@@ -280,7 +280,7 @@ body {
     padding: 2rem;
     background: white;
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.2);
+    box-shadow: 0 10px 30px rgba(22, 34, 63, 0.2);
     transition: transform 0.3s, box-shadow 0.3s;
     border: 2px solid transparent;
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
@@ -288,19 +288,19 @@ body {
 
 .stat:hover {
     transform: translateY(-10px);
-    box-shadow: 0 15px 40px rgba(215, 14, 116, 0.3);
-    border-color: #D70E74;
+    box-shadow: 0 15px 40px rgba(22, 34, 63, 0.3);
+    border-color: #16223F;
 }
 
 .stat h3 {
     font-size: 2.5rem;
-    color: #D70E74;
+    color: #16223F;
     margin-bottom: 0.5rem;
     font-weight: 800;
 }
 
 .stat p {
-    color: #D70E74;
+    color: #16223F;
     font-size: 1rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -316,7 +316,7 @@ body {
     width: 100%;
     max-width: 500px;
     height: 400px;
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     border-radius: 20px;
     display: flex;
     align-items: center;
@@ -324,7 +324,7 @@ body {
     color: white;
     font-size: 1.3rem;
     font-weight: 700;
-    box-shadow: 0 20px 60px rgba(215, 14, 116, 0.4);
+    box-shadow: 0 20px 60px rgba(22, 34, 63, 0.4);
     text-align: center;
     padding: 20px;
 }
@@ -334,7 +334,7 @@ body {
     text-align: left;
     min-height: 78vh;
     padding: 90px 20px;
-    background: linear-gradient(120deg, #D70E74 0%, #B50A60 52%, #A00955 140%);
+    background: linear-gradient(120deg, #16223F 0%, #0f1a2f 52%, #0d152b 140%);
 }
 
 .hero::after {
@@ -411,7 +411,7 @@ body {
     text-align: center;
     border: 8px solid white;
     border-radius: 28px 28px 28px 6px;
-    background: linear-gradient(145deg, #D70E74 0%, #B50A60 58%, #A00955 150%);
+    background: linear-gradient(145deg, #16223F 0%, #0f1a2f 58%, #0d152b 150%);
     box-shadow: 20px 24px 0 rgba(208, 139, 46, 0.18), 0 24px 60px rgba(23, 63, 114, 0.28);
 }
 
@@ -495,7 +495,7 @@ body {
     padding: 3rem;
     border-radius: 20px;
     text-align: center;
-    box-shadow: 0 15px 40px rgba(215, 14, 116, 0.15);
+    box-shadow: 0 15px 40px rgba(22, 34, 63, 0.15);
     border: 3px solid transparent;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
@@ -519,7 +519,7 @@ body {
     left: 0;
     width: 100%;
     height: 5px;
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
 }
 
 .philosophy-card::before {
@@ -536,7 +536,7 @@ body {
 .mission-card:hover,
 .philosophy-card:hover {
     transform: translateY(-15px) scale(1.02);
-    box-shadow: 0 25px 60px rgba(215, 14, 116, 0.25);
+    box-shadow: 0 25px 60px rgba(22, 34, 63, 0.25);
 }
 
 .vision-card:hover {
@@ -544,7 +544,7 @@ body {
 }
 
 .mission-card:hover {
-    border-color: #D70E74;
+    border-color: #16223F;
 }
 
 .philosophy-card:hover {
@@ -580,7 +580,7 @@ body {
 }
 
 .mission-card h3 {
-    color: #D70E74;
+    color: #16223F;
 }
 
 .philosophy-card h3 {
@@ -598,7 +598,7 @@ body {
 /* Commitments Section */
 .commitments {
     padding: 100px 20px;
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     color: white;
 }
 
@@ -647,7 +647,7 @@ body {
 }
 
 .commitment-item h3 {
-    color: #D70E74;
+    color: #16223F;
     margin-bottom: 1rem;
     font-size: 1.4rem;
     font-weight: 700;
@@ -669,7 +669,7 @@ body {
     text-align: center;
     font-size: 3rem;
     margin-bottom: 3rem;
-    color: #D70E74;
+    color: #16223F;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -687,7 +687,7 @@ body {
     border-radius: 20px;
     text-align: center;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.15);
+    box-shadow: 0 10px 30px rgba(22, 34, 63, 0.15);
     border: 2px solid transparent;
     position: relative;
     overflow: hidden;
@@ -700,13 +700,13 @@ body {
     left: 0;
     width: 100%;
     height: 5px;
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
 }
 
 .program-card:hover {
     transform: translateY(-15px) scale(1.02);
-    box-shadow: 0 20px 50px rgba(215, 14, 116, 0.25);
-    border-color: #D70E74;
+    box-shadow: 0 20px 50px rgba(22, 34, 63, 0.25);
+    border-color: #16223F;
 }
 
 .program-icon {
@@ -721,7 +721,7 @@ body {
 }
 
 .program-card h3 {
-    color: #D70E74;
+    color: #16223F;
     margin-bottom: 1.2rem;
     font-size: 1.5rem;
     font-weight: 700;
@@ -736,7 +736,7 @@ body {
 /* Facilities Section */
 .facilities {
     padding: 100px 20px;
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     color: white;
 }
 
@@ -785,7 +785,7 @@ body {
 }
 
 .facility-item h3 {
-    color: #D70E74;
+    color: #16223F;
     margin-bottom: 0.8rem;
     font-size: 1.4rem;
     font-weight: 700;
@@ -800,14 +800,14 @@ body {
 /* News & Achievements Section */
 .news-section {
     padding: 100px 20px;
-    background: #FDF3F8;
+    background: #F7F2E7;
 }
 
 .news-section h2 {
     text-align: center;
     font-size: 3rem;
     margin-bottom: 2rem;
-    color: #D70E74;
+    color: #16223F;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -823,11 +823,11 @@ body {
 .news-tab {
     padding: 15px 40px;
     background: white;
-    border: 3px solid #D70E74;
+    border: 3px solid #16223F;
     border-radius: 30px;
     font-size: 1.1rem;
     font-weight: 700;
-    color: #D70E74;
+    color: #16223F;
     cursor: pointer;
     transition: all 0.3s;
     text-transform: uppercase;
@@ -835,17 +835,17 @@ body {
 }
 
 .news-tab:hover {
-    background: #D70E74;
+    background: #16223F;
     color: white;
     transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(215, 14, 116, 0.3);
+    box-shadow: 0 6px 20px rgba(22, 34, 63, 0.3);
 }
 
 .news-tab.active {
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     color: white;
-    border-color: #D70E74;
-    box-shadow: 0 6px 20px rgba(215, 14, 116, 0.4);
+    border-color: #16223F;
+    box-shadow: 0 6px 20px rgba(22, 34, 63, 0.4);
 }
 
 .news-content {
@@ -867,15 +867,15 @@ body {
     background: white;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.15);
+    box-shadow: 0 10px 30px rgba(22, 34, 63, 0.15);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     border: 2px solid transparent;
 }
 
 .news-card:hover {
     transform: translateY(-15px) scale(1.02);
-    box-shadow: 0 20px 50px rgba(215, 14, 116, 0.25);
-    border-color: #D70E74;
+    box-shadow: 0 20px 50px rgba(22, 34, 63, 0.25);
+    border-color: #16223F;
 }
 
 .news-card.featured {
@@ -885,7 +885,7 @@ body {
 
 .news-image {
     height: 200px;
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     position: relative;
     display: flex;
     align-items: center;
@@ -903,7 +903,7 @@ body {
     top: 15px;
     right: 15px;
     background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%);
-    color: #D70E74;
+    color: #16223F;
     padding: 8px 20px;
     border-radius: 20px;
     font-weight: 700;
@@ -919,7 +919,7 @@ body {
 
 .news-category {
     display: inline-block;
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     color: white;
     padding: 6px 15px;
     border-radius: 15px;
@@ -959,7 +959,7 @@ body {
 }
 
 .read-more {
-    color: #D70E74;
+    color: #16223F;
     text-decoration: none;
     font-weight: 700;
     font-size: 0.95rem;
@@ -967,7 +967,7 @@ body {
 }
 
 .read-more:hover {
-    color: #D70E74;
+    color: #16223F;
     transform: translateX(5px);
 }
 
@@ -982,7 +982,7 @@ body {
     padding: 2.5rem;
     border-radius: 20px;
     text-align: center;
-    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.15);
+    box-shadow: 0 10px 30px rgba(22, 34, 63, 0.15);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     border: 3px solid transparent;
     position: relative;
@@ -1024,7 +1024,7 @@ body {
 
 .achievement-card:hover {
     transform: translateY(-15px) scale(1.05);
-    box-shadow: 0 20px 50px rgba(215, 14, 116, 0.25);
+    box-shadow: 0 20px 50px rgba(22, 34, 63, 0.25);
 }
 
 .achievement-icon {
@@ -1053,7 +1053,7 @@ body {
 
 .achievement-year {
     display: inline-block;
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     color: white;
     padding: 8px 25px;
     border-radius: 20px;
@@ -1151,7 +1151,7 @@ body {
     text-align: center;
     font-size: 3rem;
     margin-bottom: 3rem;
-    color: #D70E74;
+    color: #16223F;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -1167,8 +1167,8 @@ body {
     background: white;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 15px 35px rgba(215, 14, 116, 0.12);
-    border: 2px solid rgba(215, 14, 116, 0.08);
+    box-shadow: 0 15px 35px rgba(22, 34, 63, 0.12);
+    border: 2px solid rgba(22, 34, 63, 0.08);
 }
 
 .gallery-card.wide {
@@ -1178,12 +1178,12 @@ body {
 .gallery-media {
     height: 260px;
     border-radius: 20px 20px 0 0;
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
 }
 
 .gallery-caption {
     padding: 1rem 1.25rem 1.5rem;
-    color: #D70E74;
+    color: #16223F;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08rem;
@@ -1209,12 +1209,12 @@ body {
     padding: 2rem;
     text-align: center;
     color: #555;
-    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.08);
+    box-shadow: 0 10px 30px rgba(22, 34, 63, 0.08);
 }
 
 .admissions {
     padding: 100px 20px;
-    background: #FDF3F8;
+    background: #F7F2E7;
 }
 
 .admissions h2,
@@ -1222,7 +1222,7 @@ body {
     text-align: center;
     font-size: 3rem;
     margin-bottom: 3rem;
-    color: #D70E74;
+    color: #16223F;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -1240,12 +1240,12 @@ body {
     background: white;
     border-radius: 20px;
     padding: 2rem;
-    box-shadow: 0 15px 40px rgba(215, 14, 116, 0.12);
-    border: 2px solid rgba(215, 14, 116, 0.08);
+    box-shadow: 0 15px 40px rgba(22, 34, 63, 0.12);
+    border: 2px solid rgba(22, 34, 63, 0.08);
 }
 
 .admission-card h3 {
-    color: #D70E74;
+    color: #16223F;
     margin-bottom: 1rem;
     font-size: 1.5rem;
 }
@@ -1267,7 +1267,7 @@ body {
     content: '•';
     position: absolute;
     left: 0;
-    color: #D70E74;
+    color: #16223F;
     font-size: 1.5rem;
     line-height: 1;
 }
@@ -1300,11 +1300,11 @@ body {
 }
 
 .testimonial-author strong {
-    color: #D70E74;
+    color: #16223F;
 }
 
 .testimonial-author span {
-    color: #D70E74;
+    color: #16223F;
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.08rem;
@@ -1315,7 +1315,7 @@ body {
     overflow: hidden;
     border-radius: 18px;
     border: 2px solid #dfe8ff;
-    box-shadow: 0 15px 35px rgba(215, 14, 116, 0.12);
+    box-shadow: 0 15px 35px rgba(22, 34, 63, 0.12);
 }
 
 .map-wrapper iframe {
@@ -1328,14 +1328,14 @@ body {
 /* Contact Section */
 .contact {
     padding: 100px 20px;
-    background: #FDF3F8;
+    background: #F7F2E7;
 }
 
 .contact h2 {
     text-align: center;
     font-size: 3rem;
     margin-bottom: 3rem;
-    color: #D70E74;
+    color: #16223F;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -1351,12 +1351,12 @@ body {
     background: white;
     padding: 3rem;
     border-radius: 20px;
-    box-shadow: 0 15px 40px rgba(215, 14, 116, 0.2);
-    border: 2px solid #D70E74;
+    box-shadow: 0 15px 40px rgba(22, 34, 63, 0.2);
+    border: 2px solid #16223F;
 }
 
 .contact-info h3 {
-    color: #D70E74;
+    color: #16223F;
     margin-bottom: 2rem;
     font-size: 1.8rem;
     font-weight: 700;
@@ -1375,7 +1375,7 @@ body {
 }
 
 .contact-item strong {
-    color: #D70E74;
+    color: #16223F;
     display: block;
     margin-bottom: 0.5rem;
     font-size: 1.1rem;
@@ -1391,12 +1391,12 @@ body {
     background: white;
     padding: 3rem;
     border-radius: 20px;
-    box-shadow: 0 15px 40px rgba(215, 14, 116, 0.2);
-    border: 2px solid #D70E74;
+    box-shadow: 0 15px 40px rgba(22, 34, 63, 0.2);
+    border: 2px solid #16223F;
 }
 
 .contact-form h3 {
-    color: #D70E74;
+    color: #16223F;
     margin-bottom: 2rem;
     font-size: 1.8rem;
     font-weight: 700;
@@ -1429,14 +1429,14 @@ body {
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #D70E74;
-    box-shadow: 0 0 0 3px rgba(215, 14, 116, 0.1);
+    border-color: #16223F;
+    box-shadow: 0 0 0 3px rgba(22, 34, 63, 0.1);
     background: white;
 }
 
 /* Footer */
 .footer {
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     color: white;
     padding: 80px 20px 30px;
     position: relative;
@@ -1450,7 +1450,7 @@ body {
     left: 0;
     width: 100%;
     height: 100px;
-    background: #FDF3F8;
+    background: #F7F2E7;
     transform: skewY(-3deg);
 }
 
@@ -1548,10 +1548,10 @@ body {
         top: 100%;
         left: 0;
         right: 0;
-        background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+        background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
         padding: 1rem 0;
         gap: 0;
-        box-shadow: 0 4px 20px rgba(215, 14, 116, 0.3);
+        box-shadow: 0 4px 20px rgba(22, 34, 63, 0.3);
     }
 
     .nav-menu.active {
@@ -1716,7 +1716,7 @@ body {
     .sidebar-toggle {
         display: block;
         flex: 0 0 auto;
-        background: #D70E74;
+        background: #16223F;
         color: white;
         border: none;
         padding: 10px 15px;
@@ -1771,7 +1771,7 @@ body {
 
 .sidebar {
     width: 250px;
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     color: white;
     padding: 20px;
     position: fixed;
@@ -1841,7 +1841,7 @@ body {
 }
 
 .top-bar h1 {
-    color: #D70E74;
+    color: #16223F;
     font-size: 1.8rem;
 }
 
@@ -1865,7 +1865,7 @@ body {
 }
 
 .data-table th {
-    background: #D70E74;
+    background: #16223F;
     color: white;
     font-weight: 600;
 }
@@ -1875,8 +1875,8 @@ body {
 }
 
 .sidebar {
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%) !important;
-    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.3);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%) !important;
+    box-shadow: 0 10px 30px rgba(22, 34, 63, 0.3);
 }
 
 .sidebar-header h2 {
@@ -1894,18 +1894,18 @@ body {
 
 .stat-card {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
-    border: 2px solid #D70E74;
+    border: 2px solid #16223F;
     transition: all 0.3s;
 }
 
 .stat-card:hover {
     transform: translateY(-10px);
-    box-shadow: 0 15px 40px rgba(215, 14, 116, 0.3);
-    border-color: #D70E74;
+    box-shadow: 0 15px 40px rgba(22, 34, 63, 0.3);
+    border-color: #16223F;
 }
 
 .stat-card h3 {
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1919,23 +1919,23 @@ body {
 }
 
 .info-card:hover {
-    border-color: #D70E74;
-    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.2);
+    border-color: #16223F;
+    box-shadow: 0 10px 30px rgba(22, 34, 63, 0.2);
 }
 
 .info-card h3 {
-    color: #D70E74;
+    color: #16223F;
     font-weight: 700;
 }
 
 .login-card {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 3px solid #D70E74;
-    box-shadow: 0 20px 60px rgba(215, 14, 116, 0.3);
+    border: 3px solid #16223F;
+    box-shadow: 0 20px 60px rgba(22, 34, 63, 0.3);
 }
 
 .login-header h1 {
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1943,24 +1943,26 @@ body {
 }
 
 .login-btn {
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%) !important;
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%) !important;
     color: #FFFFFF !important;
-    box-shadow: 0 6px 20px rgba(215, 14, 116, 0.3);
+    box-shadow: 0 6px 20px rgba(22, 34, 63, 0.3);
 }
 
 .login-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(215, 14, 116, 0.4);
+    box-shadow: 0 8px 25px rgba(201, 162, 39, 0.4);
+    background: #C9A227 !important;
+    color: #16223F !important;
 }
 
 .password-card {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 3px solid #D70E74;
-    box-shadow: 0 20px 60px rgba(215, 14, 116, 0.3);
+    border: 3px solid #16223F;
+    box-shadow: 0 20px 60px rgba(22, 34, 63, 0.3);
 }
 
 .password-header h1 {
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1968,27 +1970,29 @@ body {
 }
 
 .password-btn {
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%) !important;
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%) !important;
     color: #FFFFFF !important;
-    box-shadow: 0 6px 20px rgba(215, 14, 116, 0.3);
+    box-shadow: 0 6px 20px rgba(22, 34, 63, 0.3);
 }
 
 .password-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(215, 14, 116, 0.4);
+    box-shadow: 0 8px 25px rgba(201, 162, 39, 0.4);
+    background: #C9A227 !important;
+    color: #16223F !important;
 }
 
 .student-info-card,
 .teacher-info-card {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 3px solid #D70E74;
-    box-shadow: 0 15px 40px rgba(215, 14, 116, 0.2);
+    border: 3px solid #16223F;
+    box-shadow: 0 15px 40px rgba(22, 34, 63, 0.2);
 }
 
 .student-avatar,
 .teacher-avatar {
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
-    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.4);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
+    box-shadow: 0 10px 30px rgba(22, 34, 63, 0.4);
 }
 
 .stat-item {
@@ -1998,12 +2002,12 @@ body {
 }
 
 .stat-item:hover {
-    border-color: #D70E74;
+    border-color: #16223F;
     transform: translateY(-5px);
 }
 
 .stat-item h3 {
-    color: #D70E74;
+    color: #16223F;
     font-weight: 800;
 }
 
@@ -2013,13 +2017,13 @@ body {
     background: white;
     border-radius: 15px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.15);
+    box-shadow: 0 10px 30px rgba(22, 34, 63, 0.15);
 }
 
 .results-table th,
 .assignments-table th,
 .requests-table th {
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     font-weight: 700;
 }
 
@@ -2055,12 +2059,12 @@ body {
 
 .form-card {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 3px solid #D70E74;
-    box-shadow: 0 15px 40px rgba(215, 14, 116, 0.2);
+    border: 3px solid #16223F;
+    box-shadow: 0 15px 40px rgba(22, 34, 63, 0.2);
 }
 
 .form-card h2 {
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -2069,12 +2073,12 @@ body {
 
 .modal-content {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 3px solid #D70E74;
-    box-shadow: 0 20px 60px rgba(215, 14, 116, 0.4);
+    border: 3px solid #16223F;
+    box-shadow: 0 20px 60px rgba(22, 34, 63, 0.4);
 }
 
 .modal-header h3 {
-    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -2083,12 +2087,12 @@ body {
 
 .empty-state {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 3px dashed #D70E74;
+    border: 3px dashed #16223F;
     border-radius: 15px;
 }
 
 .empty-state h3 {
-    color: #D70E74;
+    color: #16223F;
     font-weight: 700;
 }
 /* ===== Mobile responsiveness: global table + dashboard fixes ===== */
