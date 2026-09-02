@@ -412,7 +412,7 @@ body {
     border: 8px solid white;
     border-radius: 28px 28px 28px 6px;
     background: linear-gradient(145deg, #16223F 0%, #0f1a2f 58%, #0d152b 150%);
-    box-shadow: 20px 24px 0 rgba(208, 139, 46, 0.18), 0 24px 60px rgba(23, 63, 114, 0.28);
+    box-shadow: 20px 24px 0 rgba(201, 162, 39, 0.18), 0 24px 60px rgba(22, 34, 63, 0.28);
 }
 
 .campus-placeholder::before,
@@ -999,11 +999,11 @@ body {
 }
 
 .achievement-card.gold::before {
-    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%);
+    background: linear-gradient(135deg, #C9A227 0%, #a78120 100%);
 }
 
 .achievement-card.gold {
-    border-color: #FFFFFF;
+    border-color: #C9A227;
 }
 
 .achievement-card.silver::before {
@@ -1125,7 +1125,7 @@ body {
     padding: 32px 24px;
     gap: 16px;
     color: #fff;
-    background: linear-gradient(135deg, rgba(23, 63, 114, 0.9), rgba(208, 139, 46, 0.82));
+    background: linear-gradient(135deg, rgba(22, 34, 63, 0.9), rgba(201, 162, 39, 0.82));
 }
 
 .image-placeholder span {
