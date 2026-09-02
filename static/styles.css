@@ -1944,6 +1944,7 @@ body {
 
 .login-btn {
     background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%) !important;
+    color: #FFFFFF !important;
     box-shadow: 0 6px 20px rgba(215, 14, 116, 0.3);
 }
 
@@ -1968,6 +1969,7 @@ body {
 
 .password-btn {
     background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%) !important;
+    color: #FFFFFF !important;
     box-shadow: 0 6px 20px rgba(215, 14, 116, 0.3);
 }
 
