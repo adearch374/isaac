@@ -1,0 +1,20 @@
+[
+  "tests/test_class_edit.py::ClassEditRouteTests::test_add_subject_logs_without_nested_commit",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_edit_class_updates_class_record",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_edit_student_updates_username",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_edit_teacher_updates_username",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_homepage_renders_published_news_and_achievement_items",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_site_sets_csp_without_unsafe_eval",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_student_can_select_many_subjects_from_own_class_only",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_student_class_subjects_are_auto_selected",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_student_dashboard_shows_selected_subject_count",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_student_dashboard_uses_class_subjects_when_saved_selection_is_stale",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_student_repeated_save_cleans_duplicate_rows_before_commit",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_student_results_page_renders_approved_results",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_student_submission_requires_at_least_one_subject",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_submit_teaching_request_handles_missing_teacher_profile",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_teacher_attendance_history_lists_previous_records",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_teacher_can_submit_multiple_subject_requests",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_teacher_class_list_and_attendance_are_class_based",
+  "tests/test_class_edit.py::ClassEditRouteTests::test_teacher_subjects_page_renders_for_approved_assignments"
+]
