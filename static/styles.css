@@ -9,7 +9,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: #333;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     min-height: 100vh;
 }
 
@@ -21,13 +21,13 @@ body {
 
 /* Navigation */
 .navbar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     color: white;
     padding: 1rem 0;
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 20px rgba(215, 14, 116, 0.3);
     backdrop-filter: blur(10px);
 }
 
@@ -52,7 +52,7 @@ body {
 .nav-brand h1 {
     font-size: 1.5rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -80,7 +80,7 @@ body {
     left: 0;
     width: 0;
     height: 2px;
-    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%);
     transition: width 0.3s;
 }
 
@@ -89,12 +89,12 @@ body {
 }
 
 .nav-menu a:hover {
-    color: #ffd700;
+    color: #FFFFFF;
 }
 
 .login-btn {
-    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
-    color: #1e3c72 !important;
+    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%);
+    color: #D70E74 !important;
     padding: 10px 25px;
     border-radius: 25px;
     font-weight: 600;
@@ -118,12 +118,12 @@ body {
 
 .login-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
 }
 
 /* Hero Section */
 .hero {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%), 
+    background: linear-gradient(135deg, rgba(215, 14, 116, 0.9) 0%, rgba(215, 14, 116, 0.9) 100%), 
                 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%23ffffff" width="1200" height="600"/><circle cx="200" cy="200" r="150" fill="%23667eea" opacity="0.1"/><circle cx="1000" cy="400" r="200" fill="%23764ba2" opacity="0.1"/><circle cx="600" cy="300" r="100" fill="%23ffd700" opacity="0.1"/></svg>');
     background-size: cover;
     background-position: center;
@@ -145,7 +145,7 @@ body {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 50%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
     animation: pulse 15s infinite;
 }
 
@@ -164,7 +164,7 @@ body {
     font-size: 3.5rem;
     margin-bottom: 1.5rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #ffffff 0%, #ffd700 100%);
+    background: linear-gradient(135deg, #ffffff 0%, #FFFFFF 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -174,7 +174,7 @@ body {
 .hero > .hero-content > p:nth-child(2) {
     font-size: 2rem;
     margin-bottom: 1.5rem;
-    color: #ffd700;
+    color: #FFFFFF;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -207,14 +207,14 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
-    color: #1e3c72;
-    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%);
+    color: #D70E74;
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
 }
 
 .btn-primary:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.5);
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.5);
 }
 
 .btn-secondary {
@@ -226,7 +226,7 @@ body {
 
 .btn-secondary:hover {
     background: white;
-    color: #667eea;
+    color: #D70E74;
     transform: translateY(-4px);
     box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
 }
@@ -234,14 +234,14 @@ body {
 /* About Section */
 .about {
     padding: 100px 20px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: #FDF3F8;
 }
 
 .about h2 {
     text-align: center;
     font-size: 3rem;
     margin-bottom: 3rem;
-    color: #667eea;
+    color: #D70E74;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -255,7 +255,7 @@ body {
 }
 
 .about-text h3 {
-    color: #764ba2;
+    color: #D70E74;
     font-size: 1.8rem;
     margin-bottom: 1.5rem;
     font-weight: 700;
@@ -280,7 +280,7 @@ body {
     padding: 2rem;
     background: white;
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.2);
     transition: transform 0.3s, box-shadow 0.3s;
     border: 2px solid transparent;
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
@@ -288,19 +288,19 @@ body {
 
 .stat:hover {
     transform: translateY(-10px);
-    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
-    border-color: #667eea;
+    box-shadow: 0 15px 40px rgba(215, 14, 116, 0.3);
+    border-color: #D70E74;
 }
 
 .stat h3 {
     font-size: 2.5rem;
-    color: #667eea;
+    color: #D70E74;
     margin-bottom: 0.5rem;
     font-weight: 800;
 }
 
 .stat p {
-    color: #764ba2;
+    color: #D70E74;
     font-size: 1rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -316,7 +316,7 @@ body {
     width: 100%;
     max-width: 500px;
     height: 400px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     border-radius: 20px;
     display: flex;
     align-items: center;
@@ -324,7 +324,7 @@ body {
     color: white;
     font-size: 1.3rem;
     font-weight: 700;
-    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 20px 60px rgba(215, 14, 116, 0.4);
     text-align: center;
     padding: 20px;
 }
@@ -334,7 +334,7 @@ body {
     text-align: left;
     min-height: 78vh;
     padding: 90px 20px;
-    background: linear-gradient(120deg, #173f72 0%, #286b9c 52%, #d08b2e 140%);
+    background: linear-gradient(120deg, #D70E74 0%, #B50A60 52%, #A00955 140%);
 }
 
 .hero::after {
@@ -344,7 +344,7 @@ body {
     bottom: -28vw;
     width: 55vw;
     height: 55vw;
-    border: 1px solid rgba(255, 215, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.35);
     border-radius: 50%;
     box-shadow: 0 0 0 40px rgba(255, 255, 255, 0.04), 0 0 0 80px rgba(255, 255, 255, 0.03);
 }
@@ -358,7 +358,7 @@ body {
     align-items: center;
     gap: 12px;
     margin-bottom: 28px;
-    color: #ffd76a;
+    color: #FFFFFF;
     font-size: 0.78rem;
     font-weight: 800;
     letter-spacing: 2px;
@@ -368,7 +368,7 @@ body {
     width: 58px;
     height: 58px;
     object-fit: cover;
-    border: 3px solid #ffd76a;
+    border: 3px solid #FFFFFF;
     border-radius: 50%;
     background: white;
     padding: 4px;
@@ -384,7 +384,7 @@ body {
 .hero > .hero-content > p:first-of-type {
     font-size: 1.25rem;
     margin-bottom: 1.5rem;
-    color: #ffd76a;
+    color: #FFFFFF;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -411,7 +411,7 @@ body {
     text-align: center;
     border: 8px solid white;
     border-radius: 28px 28px 28px 6px;
-    background: linear-gradient(145deg, #173f72 0%, #286b9c 58%, #d08b2e 150%);
+    background: linear-gradient(145deg, #D70E74 0%, #B50A60 58%, #A00955 150%);
     box-shadow: 20px 24px 0 rgba(208, 139, 46, 0.18), 0 24px 60px rgba(23, 63, 114, 0.28);
 }
 
@@ -443,7 +443,7 @@ body {
     width: 180px;
     height: 180px;
     border-radius: 50%;
-    background: rgba(255, 215, 0, 0.22);
+    background: rgba(255, 255, 255, 0.22);
     filter: blur(35px);
 }
 
@@ -461,7 +461,7 @@ body {
 
 .campus-placeholder-label {
     margin-top: 14px;
-    color: #ffd76a;
+    color: #FFFFFF;
     font-size: 0.75rem;
     font-weight: 800;
     letter-spacing: 2px;
@@ -479,7 +479,7 @@ body {
 /* Vision & Mission Section */
 .vision-mission {
     padding: 100px 20px;
-    background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+    background: #FFFFFF;
 }
 
 .vision-mission-grid {
@@ -495,7 +495,7 @@ body {
     padding: 3rem;
     border-radius: 20px;
     text-align: center;
-    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.15);
+    box-shadow: 0 15px 40px rgba(215, 14, 116, 0.15);
     border: 3px solid transparent;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
@@ -509,7 +509,7 @@ body {
     left: 0;
     width: 100%;
     height: 5px;
-    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%);
 }
 
 .mission-card::before {
@@ -519,7 +519,7 @@ body {
     left: 0;
     width: 100%;
     height: 5px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
 }
 
 .philosophy-card::before {
@@ -536,15 +536,15 @@ body {
 .mission-card:hover,
 .philosophy-card:hover {
     transform: translateY(-15px) scale(1.02);
-    box-shadow: 0 25px 60px rgba(102, 126, 234, 0.25);
+    box-shadow: 0 25px 60px rgba(215, 14, 116, 0.25);
 }
 
 .vision-card:hover {
-    border-color: #ffd700;
+    border-color: #FFFFFF;
 }
 
 .mission-card:hover {
-    border-color: #667eea;
+    border-color: #D70E74;
 }
 
 .philosophy-card:hover {
@@ -576,11 +576,11 @@ body {
 }
 
 .vision-card h3 {
-    color: #ffd700;
+    color: #FFFFFF;
 }
 
 .mission-card h3 {
-    color: #667eea;
+    color: #D70E74;
 }
 
 .philosophy-card h3 {
@@ -598,7 +598,7 @@ body {
 /* Commitments Section */
 .commitments {
     padding: 100px 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     color: white;
 }
 
@@ -632,7 +632,7 @@ body {
 .commitment-item:hover {
     transform: translateY(-15px) scale(1.05);
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
-    border-color: #ffd700;
+    border-color: #FFFFFF;
 }
 
 .commitment-icon {
@@ -647,7 +647,7 @@ body {
 }
 
 .commitment-item h3 {
-    color: #667eea;
+    color: #D70E74;
     margin-bottom: 1rem;
     font-size: 1.4rem;
     font-weight: 700;
@@ -662,14 +662,14 @@ body {
 /* Programs Section */
 .programs {
     padding: 100px 20px;
-    background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+    background: #FFFFFF;
 }
 
 .programs h2 {
     text-align: center;
     font-size: 3rem;
     margin-bottom: 3rem;
-    color: #667eea;
+    color: #D70E74;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -687,7 +687,7 @@ body {
     border-radius: 20px;
     text-align: center;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.15);
     border: 2px solid transparent;
     position: relative;
     overflow: hidden;
@@ -700,13 +700,13 @@ body {
     left: 0;
     width: 100%;
     height: 5px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
 }
 
 .program-card:hover {
     transform: translateY(-15px) scale(1.02);
-    box-shadow: 0 20px 50px rgba(102, 126, 234, 0.25);
-    border-color: #667eea;
+    box-shadow: 0 20px 50px rgba(215, 14, 116, 0.25);
+    border-color: #D70E74;
 }
 
 .program-icon {
@@ -721,7 +721,7 @@ body {
 }
 
 .program-card h3 {
-    color: #667eea;
+    color: #D70E74;
     margin-bottom: 1.2rem;
     font-size: 1.5rem;
     font-weight: 700;
@@ -736,7 +736,7 @@ body {
 /* Facilities Section */
 .facilities {
     padding: 100px 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     color: white;
 }
 
@@ -770,7 +770,7 @@ body {
 .facility-item:hover {
     transform: translateY(-15px) scale(1.05);
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
-    border-color: #ffd700;
+    border-color: #FFFFFF;
 }
 
 .facility-icon {
@@ -785,7 +785,7 @@ body {
 }
 
 .facility-item h3 {
-    color: #667eea;
+    color: #D70E74;
     margin-bottom: 0.8rem;
     font-size: 1.4rem;
     font-weight: 700;
@@ -800,14 +800,14 @@ body {
 /* News & Achievements Section */
 .news-section {
     padding: 100px 20px;
-    background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+    background: #FDF3F8;
 }
 
 .news-section h2 {
     text-align: center;
     font-size: 3rem;
     margin-bottom: 2rem;
-    color: #667eea;
+    color: #D70E74;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -823,11 +823,11 @@ body {
 .news-tab {
     padding: 15px 40px;
     background: white;
-    border: 3px solid #667eea;
+    border: 3px solid #D70E74;
     border-radius: 30px;
     font-size: 1.1rem;
     font-weight: 700;
-    color: #667eea;
+    color: #D70E74;
     cursor: pointer;
     transition: all 0.3s;
     text-transform: uppercase;
@@ -835,17 +835,17 @@ body {
 }
 
 .news-tab:hover {
-    background: #667eea;
+    background: #D70E74;
     color: white;
     transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 6px 20px rgba(215, 14, 116, 0.3);
 }
 
 .news-tab.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     color: white;
-    border-color: #764ba2;
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    border-color: #D70E74;
+    box-shadow: 0 6px 20px rgba(215, 14, 116, 0.4);
 }
 
 .news-content {
@@ -867,25 +867,25 @@ body {
     background: white;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.15);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     border: 2px solid transparent;
 }
 
 .news-card:hover {
     transform: translateY(-15px) scale(1.02);
-    box-shadow: 0 20px 50px rgba(102, 126, 234, 0.25);
-    border-color: #667eea;
+    box-shadow: 0 20px 50px rgba(215, 14, 116, 0.25);
+    border-color: #D70E74;
 }
 
 .news-card.featured {
     grid-column: span 2;
-    border: 3px solid #ffd700;
+    border: 3px solid #FFFFFF;
 }
 
 .news-image {
     height: 200px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     position: relative;
     display: flex;
     align-items: center;
@@ -902,15 +902,15 @@ body {
     position: absolute;
     top: 15px;
     right: 15px;
-    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
-    color: #1e3c72;
+    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%);
+    color: #D70E74;
     padding: 8px 20px;
     border-radius: 20px;
     font-weight: 700;
     font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.4);
 }
 
 .news-content-inner {
@@ -919,7 +919,7 @@ body {
 
 .news-category {
     display: inline-block;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     color: white;
     padding: 6px 15px;
     border-radius: 15px;
@@ -959,7 +959,7 @@ body {
 }
 
 .read-more {
-    color: #667eea;
+    color: #D70E74;
     text-decoration: none;
     font-weight: 700;
     font-size: 0.95rem;
@@ -967,7 +967,7 @@ body {
 }
 
 .read-more:hover {
-    color: #764ba2;
+    color: #D70E74;
     transform: translateX(5px);
 }
 
@@ -982,7 +982,7 @@ body {
     padding: 2.5rem;
     border-radius: 20px;
     text-align: center;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.15);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     border: 3px solid transparent;
     position: relative;
@@ -999,11 +999,11 @@ body {
 }
 
 .achievement-card.gold::before {
-    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%);
 }
 
 .achievement-card.gold {
-    border-color: #ffd700;
+    border-color: #FFFFFF;
 }
 
 .achievement-card.silver::before {
@@ -1024,7 +1024,7 @@ body {
 
 .achievement-card:hover {
     transform: translateY(-15px) scale(1.05);
-    box-shadow: 0 20px 50px rgba(102, 126, 234, 0.25);
+    box-shadow: 0 20px 50px rgba(215, 14, 116, 0.25);
 }
 
 .achievement-icon {
@@ -1053,7 +1053,7 @@ body {
 
 .achievement-year {
     display: inline-block;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     color: white;
     padding: 8px 25px;
     border-radius: 20px;
@@ -1133,7 +1133,7 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: #ffd76a;
+    color: #FFFFFF;
 }
 
 .image-placeholder small {
@@ -1144,14 +1144,14 @@ body {
 
 .gallery-section {
     padding: 100px 20px;
-    background: linear-gradient(135deg, #ffffff 0%, #f4f7ff 100%);
+    background: #FFFFFF;
 }
 
 .gallery-section h2 {
     text-align: center;
     font-size: 3rem;
     margin-bottom: 3rem;
-    color: #667eea;
+    color: #D70E74;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -1167,8 +1167,8 @@ body {
     background: white;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.12);
-    border: 2px solid rgba(102, 126, 234, 0.08);
+    box-shadow: 0 15px 35px rgba(215, 14, 116, 0.12);
+    border: 2px solid rgba(215, 14, 116, 0.08);
 }
 
 .gallery-card.wide {
@@ -1178,12 +1178,12 @@ body {
 .gallery-media {
     height: 260px;
     border-radius: 20px 20px 0 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
 }
 
 .gallery-caption {
     padding: 1rem 1.25rem 1.5rem;
-    color: #1e3c72;
+    color: #D70E74;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08rem;
@@ -1209,12 +1209,12 @@ body {
     padding: 2rem;
     text-align: center;
     color: #555;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.08);
+    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.08);
 }
 
 .admissions {
     padding: 100px 20px;
-    background: linear-gradient(135deg, #f7f9ff 0%, #edf2ff 100%);
+    background: #FDF3F8;
 }
 
 .admissions h2,
@@ -1222,7 +1222,7 @@ body {
     text-align: center;
     font-size: 3rem;
     margin-bottom: 3rem;
-    color: #667eea;
+    color: #D70E74;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -1240,12 +1240,12 @@ body {
     background: white;
     border-radius: 20px;
     padding: 2rem;
-    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.12);
-    border: 2px solid rgba(102, 126, 234, 0.08);
+    box-shadow: 0 15px 40px rgba(215, 14, 116, 0.12);
+    border: 2px solid rgba(215, 14, 116, 0.08);
 }
 
 .admission-card h3 {
-    color: #1e3c72;
+    color: #D70E74;
     margin-bottom: 1rem;
     font-size: 1.5rem;
 }
@@ -1267,14 +1267,14 @@ body {
     content: '•';
     position: absolute;
     left: 0;
-    color: #667eea;
+    color: #D70E74;
     font-size: 1.5rem;
     line-height: 1;
 }
 
 .testimonials {
     padding: 100px 20px;
-    background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+    background: #FFFFFF;
 }
 
 .testimonial-card {
@@ -1300,11 +1300,11 @@ body {
 }
 
 .testimonial-author strong {
-    color: #1e3c72;
+    color: #D70E74;
 }
 
 .testimonial-author span {
-    color: #667eea;
+    color: #D70E74;
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.08rem;
@@ -1315,7 +1315,7 @@ body {
     overflow: hidden;
     border-radius: 18px;
     border: 2px solid #dfe8ff;
-    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.12);
+    box-shadow: 0 15px 35px rgba(215, 14, 116, 0.12);
 }
 
 .map-wrapper iframe {
@@ -1328,14 +1328,14 @@ body {
 /* Contact Section */
 .contact {
     padding: 100px 20px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: #FDF3F8;
 }
 
 .contact h2 {
     text-align: center;
     font-size: 3rem;
     margin-bottom: 3rem;
-    color: #667eea;
+    color: #D70E74;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -1351,12 +1351,12 @@ body {
     background: white;
     padding: 3rem;
     border-radius: 20px;
-    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
-    border: 2px solid #667eea;
+    box-shadow: 0 15px 40px rgba(215, 14, 116, 0.2);
+    border: 2px solid #D70E74;
 }
 
 .contact-info h3 {
-    color: #667eea;
+    color: #D70E74;
     margin-bottom: 2rem;
     font-size: 1.8rem;
     font-weight: 700;
@@ -1375,7 +1375,7 @@ body {
 }
 
 .contact-item strong {
-    color: #667eea;
+    color: #D70E74;
     display: block;
     margin-bottom: 0.5rem;
     font-size: 1.1rem;
@@ -1391,12 +1391,12 @@ body {
     background: white;
     padding: 3rem;
     border-radius: 20px;
-    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
-    border: 2px solid #764ba2;
+    box-shadow: 0 15px 40px rgba(215, 14, 116, 0.2);
+    border: 2px solid #D70E74;
 }
 
 .contact-form h3 {
-    color: #764ba2;
+    color: #D70E74;
     margin-bottom: 2rem;
     font-size: 1.8rem;
     font-weight: 700;
@@ -1429,14 +1429,14 @@ body {
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #D70E74;
+    box-shadow: 0 0 0 3px rgba(215, 14, 116, 0.1);
     background: white;
 }
 
 /* Footer */
 .footer {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     color: white;
     padding: 80px 20px 30px;
     position: relative;
@@ -1450,7 +1450,7 @@ body {
     left: 0;
     width: 100%;
     height: 100px;
-    background: linear-gradient(135deg, #c3cfe2 0%, #f5f7fa 100%);
+    background: #FDF3F8;
     transform: skewY(-3deg);
 }
 
@@ -1467,7 +1467,7 @@ body {
     margin-bottom: 1.5rem;
     font-size: 1.4rem;
     font-weight: 700;
-    color: #ffd700;
+    color: #FFFFFF;
 }
 
 .footer-logo {
@@ -1494,7 +1494,7 @@ body {
 }
 
 .footer-section a:hover {
-    color: #ffd700;
+    color: #FFFFFF;
     transform: translateX(5px);
 }
 
@@ -1515,9 +1515,9 @@ body {
 
 .social-links a:hover {
     background: rgba(255,215,0,0.2);
-    border-color: #ffd700;
+    border-color: #FFFFFF;
     transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
 }
 
 .footer-bottom {
@@ -1548,10 +1548,10 @@ body {
         top: 100%;
         left: 0;
         right: 0;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
         padding: 1rem 0;
         gap: 0;
-        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 4px 20px rgba(215, 14, 116, 0.3);
     }
 
     .nav-menu.active {
@@ -1716,7 +1716,7 @@ body {
     .sidebar-toggle {
         display: block;
         flex: 0 0 auto;
-        background: #1e3c72;
+        background: #D70E74;
         color: white;
         border: none;
         padding: 10px 15px;
@@ -1771,7 +1771,7 @@ body {
 
 .sidebar {
     width: 250px;
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     color: white;
     padding: 20px;
     position: fixed;
@@ -1841,7 +1841,7 @@ body {
 }
 
 .top-bar h1 {
-    color: #1e3c72;
+    color: #D70E74;
     font-size: 1.8rem;
 }
 
@@ -1865,7 +1865,7 @@ body {
 }
 
 .data-table th {
-    background: #1e3c72;
+    background: #D70E74;
     color: white;
     font-weight: 600;
 }
@@ -1875,12 +1875,12 @@ body {
 }
 
 .sidebar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%) !important;
+    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.3);
 }
 
 .sidebar-header h2 {
-    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1888,24 +1888,24 @@ body {
 }
 
 .sidebar-nav a.active {
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.3) 0%, rgba(255, 170, 0, 0.3) 100%) !important;
-    border-left: 4px solid #ffd700;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.3) 100%) !important;
+    border-left: 4px solid #FFFFFF;
 }
 
 .stat-card {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
-    border: 2px solid #667eea;
+    border: 2px solid #D70E74;
     transition: all 0.3s;
 }
 
 .stat-card:hover {
     transform: translateY(-10px);
-    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
-    border-color: #764ba2;
+    box-shadow: 0 15px 40px rgba(215, 14, 116, 0.3);
+    border-color: #D70E74;
 }
 
 .stat-card h3 {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1919,23 +1919,23 @@ body {
 }
 
 .info-card:hover {
-    border-color: #667eea;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    border-color: #D70E74;
+    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.2);
 }
 
 .info-card h3 {
-    color: #667eea;
+    color: #D70E74;
     font-weight: 700;
 }
 
 .login-card {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 3px solid #667eea;
-    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+    border: 3px solid #D70E74;
+    box-shadow: 0 20px 60px rgba(215, 14, 116, 0.3);
 }
 
 .login-header h1 {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1943,23 +1943,23 @@ body {
 }
 
 .login-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%) !important;
+    box-shadow: 0 6px 20px rgba(215, 14, 116, 0.3);
 }
 
 .login-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 25px rgba(215, 14, 116, 0.4);
 }
 
 .password-card {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 3px solid #764ba2;
-    box-shadow: 0 20px 60px rgba(118, 75, 162, 0.3);
+    border: 3px solid #D70E74;
+    box-shadow: 0 20px 60px rgba(215, 14, 116, 0.3);
 }
 
 .password-header h1 {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1967,26 +1967,26 @@ body {
 }
 
 .password-btn {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
-    box-shadow: 0 6px 20px rgba(118, 75, 162, 0.3);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%) !important;
+    box-shadow: 0 6px 20px rgba(215, 14, 116, 0.3);
 }
 
 .password-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(118, 75, 162, 0.4);
+    box-shadow: 0 8px 25px rgba(215, 14, 116, 0.4);
 }
 
 .student-info-card,
 .teacher-info-card {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 3px solid #667eea;
-    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+    border: 3px solid #D70E74;
+    box-shadow: 0 15px 40px rgba(215, 14, 116, 0.2);
 }
 
 .student-avatar,
 .teacher-avatar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
+    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.4);
 }
 
 .stat-item {
@@ -1996,12 +1996,12 @@ body {
 }
 
 .stat-item:hover {
-    border-color: #667eea;
+    border-color: #D70E74;
     transform: translateY(-5px);
 }
 
 .stat-item h3 {
-    color: #667eea;
+    color: #D70E74;
     font-weight: 800;
 }
 
@@ -2011,13 +2011,13 @@ body {
     background: white;
     border-radius: 15px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+    box-shadow: 0 10px 30px rgba(215, 14, 116, 0.15);
 }
 
 .results-table th,
 .assignments-table th,
 .requests-table th {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     font-weight: 700;
 }
 
@@ -2053,12 +2053,12 @@ body {
 
 .form-card {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 3px solid #764ba2;
-    box-shadow: 0 15px 40px rgba(118, 75, 162, 0.2);
+    border: 3px solid #D70E74;
+    box-shadow: 0 15px 40px rgba(215, 14, 116, 0.2);
 }
 
 .form-card h2 {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -2067,12 +2067,12 @@ body {
 
 .modal-content {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 3px solid #667eea;
-    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
+    border: 3px solid #D70E74;
+    box-shadow: 0 20px 60px rgba(215, 14, 116, 0.4);
 }
 
 .modal-header h3 {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D70E74 0%, #B50A60 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -2081,12 +2081,12 @@ body {
 
 .empty-state {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 3px dashed #667eea;
+    border: 3px dashed #D70E74;
     border-radius: 15px;
 }
 
 .empty-state h3 {
-    color: #667eea;
+    color: #D70E74;
     font-weight: 700;
 }
 /* ===== Mobile responsiveness: global table + dashboard fixes ===== */
