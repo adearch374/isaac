@@ -1088,13 +1088,36 @@ body {
     width: min(420px, 100%);
 }
 
-.hero-photo-placeholder {
-    min-height: 360px;
+.hero-photo-frame,
+.gallery-media {
+    position: relative;
+    overflow: hidden;
     border-radius: 28px 28px 28px 8px;
     background: linear-gradient(145deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 100%);
     border: 2px solid rgba(255, 255, 255, 0.45);
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18);
+}
+
+.hero-photo-frame {
+    min-height: 360px;
     display: flex;
+    align-items: stretch;
+    justify-content: center;
+}
+
+.hero-photo-frame img,
+.gallery-media img,
+.campus-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.image-placeholder {
+    position: absolute;
+    inset: 0;
+    display: none;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -1102,20 +1125,81 @@ body {
     padding: 32px 24px;
     gap: 16px;
     color: #fff;
+    background: linear-gradient(135deg, rgba(23, 63, 114, 0.9), rgba(208, 139, 46, 0.82));
 }
 
-.hero-photo-placeholder span {
-    font-size: 1.2rem;
+.image-placeholder span {
+    font-size: 1.1rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
     color: #ffd76a;
 }
 
-.hero-photo-placeholder small {
+.image-placeholder small {
     max-width: 240px;
     color: rgba(255, 255, 255, 0.8);
     line-height: 1.6;
+}
+
+.gallery-section {
+    padding: 100px 20px;
+    background: linear-gradient(135deg, #ffffff 0%, #f4f7ff 100%);
+}
+
+.gallery-section h2 {
+    text-align: center;
+    font-size: 3rem;
+    margin-bottom: 3rem;
+    color: #667eea;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.gallery-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.12);
+    border: 2px solid rgba(102, 126, 234, 0.08);
+}
+
+.gallery-card.wide {
+    grid-column: span 2;
+}
+
+.gallery-media {
+    height: 260px;
+    border-radius: 20px 20px 0 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gallery-caption {
+    padding: 1rem 1.25rem 1.5rem;
+    color: #1e3c72;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08rem;
+}
+
+.campus-placeholder-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 8px;
+    color: white;
+    z-index: 1;
 }
 
 .empty-state {

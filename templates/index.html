@@ -22,6 +22,7 @@
             <ul class="nav-menu" id="nav-menu">
                 <li><a href="#home">Home</a></li>
                 <li><a href="#about">About Us</a></li>
+                <li><a href="#gallery">Gallery</a></li>
                 <li><a href="#vision-mission">Vision & Mission</a></li>
                 <li><a href="#commitments">Commitments</a></li>
                 <li><a href="#programs">Programs</a></li>
@@ -47,10 +48,15 @@
                 <a href="#about" class="btn btn-secondary">Learn More</a>
             </div>
         </div>
-        <div class="hero-photo-card" aria-label="Campus photo placeholder">
-            <div class="hero-photo-placeholder">
-                <span>Campus photo update needed</span>
-                <small>Photos of student life and campus facilities are still being collected for the homepage.</small>
+        <div class="hero-photo-card" aria-label="La Paix campus photo area">
+            <div class="hero-photo-frame">
+                <img src="{{ url_for('static', filename='images/gallery/building-exterior-1.jpg') }}"
+                     alt="La-Paix Model College school building exterior"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="image-placeholder">
+                    <span>Campus photo update needed</span>
+                    <small>School image still being uploaded for the homepage feature area.</small>
+                </div>
             </div>
         </div>
     </section>
@@ -80,11 +86,68 @@
                 <div class="about-image">
                     <div class="campus-placeholder">
                         <div class="campus-placeholder-glow"></div>
-                        <img src="{{ url_for('static', filename='logo.png') }}" alt="La Paix Group of Schools logo" class="campus-logo">
-                        <span class="campus-placeholder-label">Our campus story</span>
-                        <strong>Growing with purpose</strong>
-                        <small>School photos are still being collected for launch.</small>
+                        <img src="{{ url_for('static', filename='images/gallery/building-exterior-2.jpg') }}"
+                             alt="La-Paix Model College exterior building facade"
+                             class="campus-photo"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="campus-placeholder-inner">
+                            <img src="{{ url_for('static', filename='logo.png') }}" alt="La Paix Group of Schools logo" class="campus-logo">
+                            <span class="campus-placeholder-label">Our campus story</span>
+                            <strong>Growing with purpose</strong>
+                            <small>School photos are still being collected for launch.</small>
+                        </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery / Facilities Section -->
+    <section id="gallery" class="gallery-section">
+        <div class="container">
+            <h2>School Gallery</h2>
+            <div class="gallery-grid">
+                <div class="gallery-card">
+                    <div class="gallery-media">
+                        <img src="{{ url_for('static', filename='images/gallery/biology-lab-1.jpg') }}" alt="La-Paix Model College Biology Lab" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="image-placeholder"><span>Biology Lab</span></div>
+                    </div>
+                    <div class="gallery-caption">Biology Lab</div>
+                </div>
+                <div class="gallery-card">
+                    <div class="gallery-media">
+                        <img src="{{ url_for('static', filename='images/gallery/chemistry-lab-1.jpg') }}" alt="La-Paix Model College Chemistry Lab" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="image-placeholder"><span>Chemistry Lab</span></div>
+                    </div>
+                    <div class="gallery-caption">Chemistry Lab</div>
+                </div>
+                <div class="gallery-card">
+                    <div class="gallery-media">
+                        <img src="{{ url_for('static', filename='images/gallery/physics-lab-1.jpg') }}" alt="La-Paix Model College Physics Lab" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="image-placeholder"><span>Physics Lab</span></div>
+                    </div>
+                    <div class="gallery-caption">Physics Lab</div>
+                </div>
+                <div class="gallery-card">
+                    <div class="gallery-media">
+                        <img src="{{ url_for('static', filename='images/gallery/computer-lab-1.jpg') }}" alt="La-Paix Model College Computer Lab" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="image-placeholder"><span>Computer Lab</span></div>
+                    </div>
+                    <div class="gallery-caption">Computer Lab</div>
+                </div>
+                <div class="gallery-card wide">
+                    <div class="gallery-media">
+                        <img src="{{ url_for('static', filename='images/gallery/students-green-uniform.jpg') }}" alt="La-Paix Model College students in green uniforms" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="image-placeholder"><span>Student Life</span></div>
+                    </div>
+                    <div class="gallery-caption">Student Life</div>
+                </div>
+                <div class="gallery-card wide">
+                    <div class="gallery-media">
+                        <img src="{{ url_for('static', filename='images/gallery/building-exterior-3.jpg') }}" alt="La-Paix Model College building exterior and signage" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="image-placeholder"><span>Campus Exterior</span></div>
+                    </div>
+                    <div class="gallery-caption">Campus Exterior</div>
                 </div>
             </div>
         </div>
