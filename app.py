@@ -12,17 +12,32 @@ import os
 import json
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
-
-# Use Render's Postgres if DATABASE_URL is set, otherwise fall back to local SQLite for dev.
+# Use an external Postgres (e.g. Neon) or Render's Postgres if DATABASE_URL is
+# set, otherwise fall back to local SQLite for dev.
 database_url = os.environ.get('DATABASE_URL', 'sqlite:///school.db')
-# Render provides URLs starting with "postgres://" — convert to the pg8000 driver format
+# Providers give URLs starting with "postgres://" — convert to the pg8000 driver format
 if database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql+pg8000://', 1)
 elif database_url.startswith('postgresql://'):
     database_url = database_url.replace('postgresql://', 'postgresql+pg8000://', 1)
+
+# pg8000 doesn't understand libpq-style query params like sslmode/channel_binding
+# that some hosts (e.g. Neon) append to the connection string automatically —
+# strip them so pg8000 doesn't choke on an argument it can't handle.
+if database_url.startswith('postgresql+pg8000://'):
+    from urllib.parse import urlparse, urlunparse
+    parsed = urlparse(database_url)
+    database_url = urlunparse(parsed._replace(query=''))
+
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Turn SSL on the way pg8000 actually expects (Neon and most managed Postgres
+# hosts require SSL), instead of via the stripped sslmode query param above.
+if database_url.startswith('postgresql+pg8000://'):
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'connect_args': {'ssl_context': True}
+    }
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
 app.config['ASSIGNMENT_UPLOAD_FOLDER'] = os.path.join(app.instance_path, 'uploads')
 os.makedirs(app.config['ASSIGNMENT_UPLOAD_FOLDER'], exist_ok=True)
