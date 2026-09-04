@@ -227,11 +227,11 @@
                     <li><a href="{{ url_for('teacher_dashboard') }}">Dashboard</a></li>
                     <li><a href="{{ url_for('teacher_results') }}" class="active">Results</a></li>
                     <li><a href="{{ url_for('teacher_requests') }}">Teaching Requests</a></li>
-                    <li><a href="#">My Profile</a></li>
-                    <li><a href="#">My Subjects</a></li>
-                    <li><a href="#">My Classes</a></li>
-                    <li><a href="#">Attendance</a></li>
-                    <li><a href="#">Timetable</a></li>
+                    <li><a href="{{ url_for('teacher_profile') }}">My Profile</a></li>
+                    <li><a href="{{ url_for('teacher_subjects') }}">My Subjects</a></li>
+                    <li><a href="{{ url_for('teacher_classes') }}">My Classes</a></li>
+                    <li><a href="{{ url_for('teacher_attendance') }}">Attendance</a></li>
+                    <li><a href="{{ url_for('teacher_timetable') }}">Timetable</a></li>
                     <li><a href="{{ url_for('change_password') }}">Change Password</a></li>
                     <li><a href="{{ url_for('logout') }}">Logout</a></li>
                 </ul>

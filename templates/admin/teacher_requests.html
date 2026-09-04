@@ -320,17 +320,17 @@
                 <ul>
                     <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
                     <li><a href="{{ url_for('admin_teacher_requests') }}" class="active">Teacher Requests</a></li>
-                    <li><a href="#">Students</a></li>
-                    <li><a href="#">Teachers</a></li>
-                    <li><a href="#">Classes</a></li>
-                    <li><a href="#">Subjects</a></li>
-                    <li><a href="#">Results</a></li>
-                    <li><a href="#">Attendance</a></li>
-                    <li><a href="#">Timetable</a></li>
-                    <li><a href="#">Academic Sessions</a></li>
-                    <li><a href="#">Administrators</a></li>
-                    <li><a href="#">Activity Logs</a></li>
-                    <li><a href="#">Settings</a></li>
+                    <li><a href="{{ url_for('admin_students') }}">Students</a></li>
+                    <li><a href="{{ url_for('admin_teachers') }}">Teachers</a></li>
+                    <li><a href="{{ url_for('admin_classes') }}">Classes</a></li>
+                    <li><a href="{{ url_for('admin_subjects') }}">Subjects</a></li>
+                    <li><a href="{{ url_for('admin_results') }}">Results</a></li>
+                    <li><a href="{{ url_for('admin_attendance') }}">Attendance</a></li>
+                    <li><a href="{{ url_for('admin_timetable') }}">Timetable</a></li>
+                    <li><a href="{{ url_for('admin_academic_sessions') }}">Academic Sessions</a></li>
+                    <li><a href="{{ url_for('admin_administrators') }}">Administrators</a></li>
+                    <li><a href="{{ url_for('admin_activity_logs') }}">Activity Logs</a></li>
+                    <li><a href="{{ url_for('admin_settings') }}">Settings</a></li>
                     <li><a href="{{ url_for('change_password') }}">Change Password</a></li>
                     <li><a href="{{ url_for('logout') }}">Logout</a></li>
                 </ul>
