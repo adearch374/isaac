@@ -400,8 +400,8 @@ def load_user(user_id):
 # Routes
 @app.route('/')
 def index():
-    news_articles = News.query.filter_by(is_published=True).filter(News.category != 'achievements').order_by(News.published_at.desc().nullslast(), News.created_at.desc()).limit(6).all()
-    achievement_articles = News.query.filter_by(is_published=True).filter(News.category == 'achievements').order_by(News.published_at.desc().nullslast(), News.created_at.desc()).limit(6).all()
+    news_articles = News.query.filter_by(is_published=True).filter(News.category != 'achievements').order_by(db.func.coalesce(News.published_at, datetime.min).desc(), News.created_at.desc()).limit(6).all()
+    achievement_articles = News.query.filter_by(is_published=True).filter(News.category == 'achievements').order_by(db.func.coalesce(News.published_at, datetime.min).desc(), News.created_at.desc()).limit(6).all()
     return render_template('index.html', news_articles=news_articles, achievement_articles=achievement_articles)
 
 @app.route('/contact', methods=['POST'])

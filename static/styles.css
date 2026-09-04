@@ -2258,3 +2258,129 @@ html, body {
         font-size: 16px;
     }
 }
+
+/* ============================================================
+   Mobile Enhancements
+   ============================================================ */
+
+/* Keep anchor sections clear of the sticky navbar when using
+   in-page menu links on small screens. */
+#home, #about, #gallery, #vision-mission, #commitments, #programs,
+#facilities, #admissions, #testimonials, #news-section, #contact {
+    scroll-margin-top: 90px;
+}
+
+/* Homepage hero: stack the text and photo card on tablets/phones. */
+@media (max-width: 900px) {
+    .hero {
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 40px;
+        padding: 70px 20px;
+    }
+
+    .hero-content {
+        max-width: 100% !important;
+    }
+
+    .hero h1 {
+        max-width: 100% !important;
+        text-align: center !important;
+    }
+
+    .hero > .hero-content > p:first-of-type,
+    .hero > .hero-content > p.hero-subtitle {
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    .hero-brand-mark {
+        justify-content: center;
+    }
+
+    .hero-photo-card {
+        width: min(420px, 100%) !important;
+        margin: 0 auto;
+    }
+
+    .hero-buttons {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 600px) {
+    .hero {
+        padding: 56px 16px;
+        min-height: auto;
+    }
+
+    .hero h1 {
+        font-size: clamp(1.9rem, 7vw, 2.4rem) !important;
+    }
+
+    .hero > .hero-content > p:first-of-type {
+        font-size: 1.05rem !important;
+    }
+
+    .hero > .hero-content > p.hero-subtitle {
+        font-size: 0.95rem !important;
+    }
+
+    .hero-photo-frame {
+        min-height: 260px !important;
+    }
+
+    .hero-buttons .btn {
+        width: 100%;
+        max-width: 320px;
+    }
+}
+
+/* Gallery: wide cards should not span two columns on phones. */
+@media (max-width: 768px) {
+    .gallery-card.wide {
+        grid-column: span 1 !important;
+    }
+
+    .login-card,
+    .password-card {
+        padding: 24px !important;
+    }
+
+    /* Safety net: public events/news grids never overflow on phones. */
+    .events-grid,
+    .news-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+}
+
+@media (max-width: 400px) {
+    .login-card,
+    .password-card {
+        padding: 18px !important;
+    }
+
+    .login-card h1,
+    .password-card h1 {
+        font-size: 1.5rem !important;
+    }
+
+    .login-container,
+    .password-container {
+        padding: 12px !important;
+    }
+
+    /* Keep the school name from pushing the hamburger off screen. */
+    .nav-brand {
+        gap: 0.5rem !important;
+    }
+
+    .nav-brand h1 {
+        font-size: 0.85rem !important;
+        white-space: nowrap;
+    }
+
+    .nav-brand .logo {
+        height: 32px !important;
+    }
+}
