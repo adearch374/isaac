@@ -1,4 +1,8 @@
 import unittest
+import os
+import subprocess
+import sys
+import textwrap
 from datetime import datetime
 from unittest.mock import patch
 
@@ -913,6 +917,69 @@ class ClassEditRouteTests(unittest.TestCase):
         self.assertIn("script-src", csp)
         self.assertNotIn('unsafe-eval', csp.lower())
 
+class ProductionLoginTests(unittest.TestCase):
+    """Regression test for the production 500 on /login.
+
+    Commit a2f6d3e removed `app.config['SECRET_KEY']` from app.py, so every
+    login attempt raised:
+
+        RuntimeError: The session is unavailable because no secret key was set.
+
+    The in-process suite masked the bug because setUp() injects its own
+    SECRET_KEY. This test therefore boots the app in a clean interpreter and
+    drives a real login with no test config overrides applied.
+    """
+
+    def test_login_succeeds_with_production_module_config(self):
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        script = textwrap.dedent('''
+            import os
+            os.environ['DATABASE_URL'] = 'sqlite:///:memory:'
+
+            import app as appmod
+
+            client = appmod.app.test_client()
+            with appmod.app.app_context():
+                appmod.db.drop_all()
+                appmod.db.create_all()
+                admin = appmod.Admin(
+                    username='admin',
+                    password_hash=appmod.generate_password_hash('secret123'),
+                    role='admin',
+                    full_name='System Administrator',
+                    email='admin@lapaixschools.edu',
+                    phone='+1234567890',
+                    is_active=True,
+                    must_change_password=False,
+                )
+                appmod.db.session.add(admin)
+                appmod.db.session.commit()
+
+            resp = client.post(
+                '/login',
+                data={'username': 'admin', 'password': 'secret123'},
+                follow_redirects=False,
+            )
+            assert resp.status_code == 302, (
+                'expected a 302 redirect on successful login, got '
+                f'{resp.status_code}'
+            )
+            assert '/admin/dashboard' in resp.headers.get('Location', '')
+        ''')
+        result = subprocess.run(
+            [sys.executable, '-c', script],
+            cwd=project_root,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if result.returncode != 0:
+            self.fail(
+                'production login check failed; if the error mentions '
+                '"no secret key was set", SECRET_KEY is missing from the '
+                'production app config.\n'
+                f'{result.stderr}'
+            )
 
 if __name__ == '__main__':
     unittest.main()

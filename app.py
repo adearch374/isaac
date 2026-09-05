@@ -12,6 +12,10 @@ import os
 import json
 
 app = Flask(__name__)
+# Required for sessions/logins — without it Flask raises "The session is
+# unavailable because no secret key was set." on every login attempt.
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
+
 # Use an external Postgres (e.g. Neon) or Render's Postgres if DATABASE_URL is
 # set, otherwise fall back to local SQLite for dev.
 database_url = os.environ.get('DATABASE_URL', 'sqlite:///school.db')
