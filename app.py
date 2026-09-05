@@ -82,8 +82,10 @@ def add_security_headers(response):
     if response.content_type.startswith('text/html'):
         html = response.get_data(as_text=True)
         script_tag = '<script src="/static/mobile-sidebar.js"></script>'
+        logout_script = '<script src="/static/logout-helper.js"></script>'
         if script_tag not in html and '</body>' in html:
-            response.set_data(html.replace('</body>', f'{script_tag}</body>'))
+            html = html.replace('</body>', f'{logout_script}\n{script_tag}</body>')
+            response.set_data(html)
     return response
 
 # Database Models
@@ -476,7 +478,7 @@ def login():
     
     return render_template('login.html')
 
-@app.route('/logout')
+@app.route('/logout', methods=['POST'])
 @login_required
 def logout():
     log_activity(current_user.id, 'logout', 'User', current_user.id, f'User {current_user.username} logged out')
@@ -1584,6 +1586,10 @@ def enter_results(assignment_id):
     if assignment.teacher_id != teacher.id:
         flash('Access denied', 'error')
         return redirect(url_for('teacher_results'))
+    # Results can only be entered for approved teaching assignments
+    if assignment.status != 'approved':
+        flash('Results can only be entered for approved teaching assignments.', 'error')
+        return redirect(url_for('teacher_results'))
     
     if request.method == 'POST':
         current_session = AcademicSession.query.filter_by(is_active=True).first()
@@ -1668,6 +1674,10 @@ def submit_results(assignment_id):
     
     if assignment.teacher_id != teacher.id:
         flash('Access denied', 'error')
+        return redirect(url_for('teacher_results'))
+    # Results can only be submitted for approved teaching assignments
+    if assignment.status != 'approved':
+        flash('Results can only be submitted for approved teaching assignments.', 'error')
         return redirect(url_for('teacher_results'))
     
     current_session = AcademicSession.query.filter_by(is_active=True).first()
