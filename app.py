@@ -10,6 +10,7 @@ from types import SimpleNamespace
 from sqlalchemy import inspect, text
 import os
 import json
+import uuid
 
 app = Flask(__name__)
 # Required for sessions/logins — without it Flask raises "The session is
@@ -45,6 +46,21 @@ if database_url.startswith('postgresql+pg8000://'):
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
 app.config['ASSIGNMENT_UPLOAD_FOLDER'] = os.path.join(app.instance_path, 'uploads')
 os.makedirs(app.config['ASSIGNMENT_UPLOAD_FOLDER'], exist_ok=True)
+
+# Uploaded gallery pictures live alongside the seed photos in
+# static/images/gallery so they are served as regular static files.
+app.config['GALLERY_UPLOAD_FOLDER'] = os.path.join(app.static_folder, 'images', 'gallery')
+os.makedirs(app.config['GALLERY_UPLOAD_FOLDER'], exist_ok=True)
+ALLOWED_GALLERY_FILES = {
+    'jpg': {'image/jpeg'},
+    'jpeg': {'image/jpeg'},
+    'png': {'image/png'},
+    'gif': {'image/gif'},
+    'webp': {'image/webp'},
+}
+# How many pictures the public gallery page loads at a time — keeps the page
+# fast even when the gallery grows past 100 pictures.
+GALLERY_PER_PAGE = 24
 
 @app.errorhandler(RequestEntityTooLarge)
 def handle_file_too_large(error):
@@ -414,6 +430,17 @@ class Submission(db.Model):
 
     student = db.relationship('Student', backref='assignment_submissions')
 
+class GalleryImage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(255), nullable=False, unique=True)
+    caption = db.Column(db.String(200))
+    album = db.Column(db.String(100), nullable=False, default='General')
+    is_featured = db.Column(db.Boolean, default=False)
+    uploaded_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    uploaded_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    uploader = db.relationship('User', backref='gallery_images')
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -423,7 +450,10 @@ def load_user(user_id):
 def index():
     news_articles = News.query.filter_by(is_published=True).filter(News.category != 'achievements').order_by(db.func.coalesce(News.published_at, datetime.min).desc(), News.created_at.desc()).limit(6).all()
     achievement_articles = News.query.filter_by(is_published=True).filter(News.category == 'achievements').order_by(db.func.coalesce(News.published_at, datetime.min).desc(), News.created_at.desc()).limit(6).all()
-    return render_template('index.html', news_articles=news_articles, achievement_articles=achievement_articles)
+    # Admins can flag pictures as featured; those replace the hardcoded
+    # homepage photos. Falls back to the built-in ones when none exist yet.
+    featured_images = GalleryImage.query.filter_by(is_featured=True).order_by(GalleryImage.uploaded_at.desc()).limit(6).all()
+    return render_template('index.html', news_articles=news_articles, achievement_articles=achievement_articles, featured_images=featured_images)
 
 @app.route('/contact', methods=['POST'])
 def contact():
@@ -2490,6 +2520,104 @@ def add_event():
     
     return render_template('admin/add_event.html')
 
+# Gallery Management - Admin
+@app.route('/admin/gallery')
+@login_required
+def admin_gallery():
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    
+    gallery_images = GalleryImage.query.order_by(GalleryImage.uploaded_at.desc()).all()
+    return render_template('admin/gallery.html', gallery_images=gallery_images)
+
+@app.route('/admin/gallery/add', methods=['GET', 'POST'])
+@login_required
+def add_gallery_image():
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        uploads = [upload for upload in request.files.getlist('images') if upload and upload.filename]
+        album = (request.form.get('album') or 'General').strip()[:100] or 'General'
+        caption_base = (request.form.get('caption') or '').strip()[:200]
+        is_featured = request.form.get('is_featured') == 'on'
+        
+        if not uploads:
+            flash('Please choose at least one picture to upload', 'error')
+            return redirect(url_for('add_gallery_image'))
+        
+        saved, rejected = 0, 0
+        for upload in uploads:
+            filename = secure_filename(upload.filename)
+            extension = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+            if extension not in ALLOWED_GALLERY_FILES or upload.mimetype not in ALLOWED_GALLERY_FILES[extension]:
+                rejected += 1
+                continue
+            
+            stored_name = f"{uuid.uuid4().hex[:8]}_{filename}"
+            upload.save(os.path.join(app.config['GALLERY_UPLOAD_FOLDER'], stored_name))
+            
+            # With several files per upload the caption is numbered so each
+            # picture stays individually labelled on the public page.
+            if caption_base and len(uploads) > 1:
+                caption = f"{caption_base} ({saved + 1})"[:200]
+            else:
+                caption = caption_base or None
+            
+            image = GalleryImage(
+                filename=stored_name,
+                caption=caption,
+                album=album,
+                is_featured=is_featured,
+                uploaded_by=current_user.id
+            )
+            db.session.add(image)
+            saved += 1
+        
+        db.session.commit()
+        if saved:
+            log_activity(current_user.id, 'gallery_upload', 'GalleryImage', None, f'Admin uploaded {saved} gallery picture(s) into album "{album}"')
+            flash(f'{saved} picture(s) uploaded successfully', 'success')
+        if rejected:
+            flash(f'{rejected} file(s) were skipped — only JPG, PNG, GIF, and WEBP images are allowed', 'error')
+        return redirect(url_for('admin_gallery'))
+    
+    return render_template('admin/add_gallery.html')
+
+@app.route('/admin/gallery/<int:image_id>/toggle-featured', methods=['POST'])
+@login_required
+def toggle_gallery_featured(image_id):
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    
+    image = GalleryImage.query.get_or_404(image_id)
+    image.is_featured = not image.is_featured
+    db.session.commit()
+    log_activity(current_user.id, 'gallery_feature_toggle', 'GalleryImage', image.id, f"Admin {'featured' if image.is_featured else 'unfeatured'} gallery picture #{image.id}")
+    flash(f"Picture is now {'featured on the homepage' if image.is_featured else 'removed from the homepage features'}", 'success')
+    return redirect(url_for('admin_gallery'))
+
+@app.route('/admin/gallery/<int:image_id>/delete', methods=['POST'])
+@login_required
+def delete_gallery_image(image_id):
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    
+    image = GalleryImage.query.get_or_404(image_id)
+    file_path = os.path.join(app.config['GALLERY_UPLOAD_FOLDER'], image.filename)
+    # Only remove files that actually live inside the gallery folder.
+    if os.path.abspath(file_path).startswith(os.path.abspath(app.config['GALLERY_UPLOAD_FOLDER']) + os.sep) and os.path.exists(file_path):
+        os.remove(file_path)
+    db.session.delete(image)
+    db.session.commit()
+    log_activity(current_user.id, 'gallery_delete', 'GalleryImage', image_id, f'Admin deleted gallery picture #{image_id}')
+    flash('Picture deleted successfully', 'success')
+    return redirect(url_for('admin_gallery'))
+
 # Contact Messages Management - Admin
 @app.route('/admin/messages')
 @login_required
@@ -2659,6 +2787,20 @@ def view_event(event_id):
         flash('This event is not published', 'error')
         return redirect(url_for('view_all_events'))
     return render_template('public/event_detail.html', event=event)
+
+# Public Gallery Page
+@app.route('/gallery')
+def view_gallery():
+    page = request.args.get('page', 1, type=int)
+    current_album = (request.args.get('album') or '').strip()
+    
+    query = GalleryImage.query
+    if current_album:
+        query = query.filter_by(album=current_album)
+    pagination = query.order_by(GalleryImage.uploaded_at.desc()).paginate(page=page, per_page=GALLERY_PER_PAGE, error_out=False)
+    
+    albums = [row[0] for row in db.session.query(GalleryImage.album).distinct().order_by(GalleryImage.album).all() if row[0]]
+    return render_template('public/gallery.html', gallery_images=pagination.items, pagination=pagination, albums=albums, current_album=current_album)
 
 # Helper Functions
 def log_activity(user_id, action, entity_type, entity_id, details, commit=True):

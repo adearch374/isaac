@@ -1184,6 +1184,13 @@ body {
 .gallery-caption {
     padding: 1rem 1.25rem 1.5rem;
     color: #16223F;
+}
+
+/* Button under the homepage gallery pointing to the full gallery page. */
+.gallery-cta {
+    text-align: center;
+    margin-top: 2.5rem;
+}
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08rem;
