@@ -28,7 +28,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 password_hash=generate_password_hash('secret123'),
                 role='admin',
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(admin)
             db.session.commit()
@@ -139,7 +138,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 qualification='BSc',
                 teacher_id='TCH001',
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(teacher)
             db.session.commit()
@@ -186,7 +184,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 parent_phone='555',
                 class_id=self.class_id,
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(student)
             db.session.commit()
@@ -228,7 +225,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 password_hash=generate_password_hash('secret123'),
                 role='teacher',
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(user)
             db.session.commit()
@@ -260,7 +256,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 qualification='BSc',
                 teacher_id='TCHCLASS',
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(teacher)
             db.session.commit()
@@ -289,7 +284,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 student_id='STDATT001',
                 class_id=self.class_id,
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(student)
             db.session.commit()
@@ -355,7 +349,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 qualification='BSc',
                 teacher_id='TCHHIST',
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(teacher)
             db.session.commit()
@@ -370,7 +363,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 student_id='STDHIST001',
                 class_id=self.class_id,
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(student)
             db.session.commit()
@@ -428,7 +420,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 qualification='BSc',
                 teacher_id='TCHSUBJECTS',
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(teacher)
             db.session.commit()
@@ -475,7 +466,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 qualification='BA',
                 teacher_id='TCHMULTI',
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(teacher)
             db.session.commit()
@@ -530,7 +520,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 qualification='BSc',
                 teacher_id='TCHRESULTS',
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(teacher)
             db.session.commit()
@@ -545,7 +534,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 student_id='STDRESULTS001',
                 class_id=self.class_id,
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(student)
             db.session.commit()
@@ -619,7 +607,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 student_id='STDSELECT001',
                 class_id=self.class_id,
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(student)
             db.session.commit()
@@ -694,7 +681,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 student_id='STDDASH001',
                 class_id=self.class_id,
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(student)
             db.session.commit()
@@ -734,7 +720,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 student_id='STDDASHSTALE001',
                 class_id=self.class_id,
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(student)
             db.session.commit()
@@ -767,7 +752,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 student_id='STDDUP001',
                 class_id=self.class_id,
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(student)
             db.session.commit()
@@ -835,7 +819,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 student_id='STDEMPTY001',
                 class_id=self.class_id,
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(student)
             db.session.commit()
@@ -866,7 +849,6 @@ class ClassEditRouteTests(unittest.TestCase):
                 student_id='STD_AUTO_001',
                 class_id=self.class_id,
                 is_active=True,
-                must_change_password=False,
             )
             db.session.add(student)
             db.session.commit()
@@ -950,7 +932,6 @@ class ProductionLoginTests(unittest.TestCase):
                     email='admin@lapaixschools.edu',
                     phone='+1234567890',
                     is_active=True,
-                    must_change_password=False,
                 )
                 appmod.db.session.add(admin)
                 appmod.db.session.commit()

@@ -112,7 +112,6 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), nullable=False)  # 'admin', 'teacher', 'student'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
-    must_change_password = db.Column(db.Boolean, default=True)
 
     __mapper_args__ = {
         'polymorphic_identity': 'user',
@@ -519,6 +518,15 @@ def logout():
 @app.route('/change-password', methods=['GET', 'POST'])
 @login_required
 def change_password():
+    # Only administrators may change their own password here.
+    # Teachers and students must ask an administrator to reset theirs.
+    if current_user.role != 'admin':
+        flash('Access denied. Only administrators can change passwords.', 'error')
+        if current_user.role == 'teacher':
+            return redirect(url_for('teacher_dashboard'))
+        elif current_user.role == 'student':
+            return redirect(url_for('student_dashboard'))
+        return redirect(url_for('index'))
     if request.method == 'POST':
         current_password = request.form.get('current_password')
         new_password = request.form.get('new_password')
@@ -537,7 +545,6 @@ def change_password():
             return redirect(url_for('change_password'))
         
         current_user.password_hash = generate_password_hash(new_password)
-        current_user.must_change_password = False
         db.session.commit()
         
         log_activity(current_user.id, 'password_change', 'User', current_user.id, 'User changed password')
@@ -723,8 +730,7 @@ def add_student():
             address=request.form.get('address'),
             parent_name=request.form.get('parent_name'),
             parent_phone=request.form.get('parent_phone'),
-            class_id=request.form.get('class_id') if request.form.get('class_id') else None,
-            must_change_password=True
+            class_id=request.form.get('class_id') if request.form.get('class_id') else None
         )
         
         db.session.add(student)
@@ -838,8 +844,7 @@ def add_teacher():
             email=request.form.get('email'),
             phone=request.form.get('phone'),
             department=request.form.get('department'),
-            qualification=request.form.get('qualification'),
-            must_change_password=True
+            qualification=request.form.get('qualification')
         )
         
         db.session.add(teacher)
@@ -2306,8 +2311,7 @@ def add_administrator():
             role='admin',
             full_name=request.form.get('full_name'),
             email=request.form.get('email'),
-            phone=request.form.get('phone'),
-            must_change_password=True
+            phone=request.form.get('phone')
         )
         
         db.session.add(admin)
@@ -2340,7 +2344,6 @@ def edit_administrator(admin_id):
         new_password = request.form.get('password', '')
         if new_password:
             administrator.password_hash = generate_password_hash(new_password)
-            administrator.must_change_password = True
 
         log_activity(current_user.id, 'admin_update', 'Admin', admin_id, f'Admin updated administrator {administrator.full_name}')
         db.session.commit()
@@ -2962,7 +2965,18 @@ def init_db():
                 if column not in existing:
                     db.session.execute(text(f'ALTER TABLE {table} ADD COLUMN {column} {definition}'))
         db.session.commit()
-        
+
+        # Drop the legacy force-password-change column. Passwords are managed by
+        # administrators only, so this flag is no longer used.
+        if 'user' in table_names:
+            user_columns = {column['name'] for column in inspect(db.engine).get_columns('user')}
+            if 'must_change_password' in user_columns:
+                try:
+                    db.session.execute(text('ALTER TABLE "user" DROP COLUMN must_change_password'))
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
+
         # Create default admin accounts if they don't exist
         if Admin.query.count() == 0:
             admins = [
@@ -2996,8 +3010,7 @@ def init_db():
                     role='admin',
                     full_name=admin_data['full_name'],
                     email=admin_data['email'],
-                    phone=admin_data['phone'],
-                    must_change_password=True
+                    phone=admin_data['phone']
                 )
                 db.session.add(admin)
             
