@@ -342,7 +342,7 @@ class ActivityLog(db.Model):
     ip_address = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    user = db.relationship('User', backref='activity_logs')
+    user = db.relationship('User', backref=db.backref('activity_logs', cascade='all, delete-orphan', single_parent=True))
 
 class News(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -385,7 +385,7 @@ class Notification(db.Model):
     is_read = db.Column(db.Boolean, default=False, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    user = db.relationship('User', backref='notifications')
+    user = db.relationship('User', backref=db.backref('notifications', cascade='all, delete-orphan', single_parent=True))
 
 class ContactMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -752,9 +752,21 @@ def delete_student(student_id):
         return redirect(url_for('index'))
     
     student = Student.query.get_or_404(student_id)
-    log_activity(current_user.id, 'student_delete', 'Student', student_id, f'Admin deleted student {student.full_name}')
-    db.session.delete(student)
-    db.session.commit()
+    name = student.full_name
+    try:
+        # Remove rows that point at this student first; otherwise the
+        # database rejects the delete (NOT NULL foreign keys).
+        Attendance.query.filter_by(student_id=student.id).delete(synchronize_session=False)
+        Result.query.filter_by(student_id=student.id).delete(synchronize_session=False)
+        StudentSubjectChoice.query.filter_by(student_id=student.id).delete(synchronize_session=False)
+        Submission.query.filter_by(student_id=student.id).delete(synchronize_session=False)
+        log_activity(current_user.id, 'student_delete', 'Student', student_id, f'Admin deleted student {name}')
+        db.session.delete(student)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash('Unable to delete student. They may still have linked records.', 'error')
+        return redirect(url_for('admin_students'))
     flash('Student deleted successfully', 'success')
     return redirect(url_for('admin_students'))
 
@@ -865,9 +877,22 @@ def delete_teacher(teacher_id):
         return redirect(url_for('index'))
     
     teacher = Teacher.query.get_or_404(teacher_id)
-    log_activity(current_user.id, 'teacher_delete', 'Teacher', teacher_id, f'Admin deleted teacher {teacher.full_name}')
-    db.session.delete(teacher)
-    db.session.commit()
+    name = teacher.full_name
+    try:
+        # Remove rows that point at this teacher first; otherwise the
+        # database rejects the delete (NOT NULL foreign keys).
+        Assignment.query.filter_by(teacher_id=teacher.id).delete(synchronize_session=False)
+        Attendance.query.filter_by(recorded_by=teacher.id).update({'recorded_by': None}, synchronize_session=False)
+        Result.query.filter_by(teacher_id=teacher.id).delete(synchronize_session=False)
+        TeacherSubjectRequest.query.filter_by(teacher_id=teacher.id).delete(synchronize_session=False)
+        Timetable.query.filter_by(teacher_id=teacher.id).delete(synchronize_session=False)
+        log_activity(current_user.id, 'teacher_delete', 'Teacher', teacher_id, f'Admin deleted teacher {name}')
+        db.session.delete(teacher)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash('Unable to delete teacher. They may still have linked records.', 'error')
+        return redirect(url_for('admin_teachers'))
     flash('Teacher deleted successfully', 'success')
     return redirect(url_for('admin_teachers'))
 
@@ -989,10 +1014,26 @@ def delete_class(class_id):
         return redirect(url_for('index'))
 
     school_class = Class.query.get_or_404(class_id)
-    log_activity(current_user.id, 'class_delete', 'Class', class_id,
-                 f'Admin deleted class {school_class.name}')
-    db.session.delete(school_class)
-    db.session.commit()
+    name = school_class.name
+    try:
+        # Remove rows that point at this class first; otherwise the
+        # database rejects the delete (NOT NULL foreign keys).
+        Assignment.query.filter_by(class_id=school_class.id).delete(synchronize_session=False)
+        Attendance.query.filter_by(class_id=school_class.id).delete(synchronize_session=False)
+        Result.query.filter_by(class_id=school_class.id).delete(synchronize_session=False)
+        StudentSubjectChoice.query.filter_by(class_id=school_class.id).delete(synchronize_session=False)
+        Subject.query.filter_by(class_id=school_class.id).delete(synchronize_session=False)
+        TeacherSubjectRequest.query.filter_by(class_id=school_class.id).delete(synchronize_session=False)
+        Timetable.query.filter_by(class_id=school_class.id).delete(synchronize_session=False)
+        Student.query.filter_by(class_id=school_class.id).update({'class_id': None}, synchronize_session=False)
+        log_activity(current_user.id, 'class_delete', 'Class', class_id,
+                     f'Admin deleted class {name}')
+        db.session.delete(school_class)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash('Unable to delete class. It may still have linked records.', 'error')
+        return redirect(url_for('admin_classes'))
 
     flash('Class deleted successfully', 'success')
     return redirect(url_for('admin_classes'))
@@ -1148,7 +1189,15 @@ def delete_subject(subject_id):
         return redirect(url_for('index'))
 
     subject = Subject.query.get_or_404(subject_id)
+    name = subject.name
     try:
+        # Remove rows that point at this subject first; otherwise the
+        # database rejects the delete (NOT NULL foreign keys).
+        Assignment.query.filter_by(subject_id=subject.id).delete(synchronize_session=False)
+        Result.query.filter_by(subject_id=subject.id).delete(synchronize_session=False)
+        StudentSubjectChoice.query.filter_by(subject_id=subject.id).delete(synchronize_session=False)
+        TeacherSubjectRequest.query.filter_by(subject_id=subject.id).delete(synchronize_session=False)
+        Timetable.query.filter_by(subject_id=subject.id).delete(synchronize_session=False)
         db.session.delete(subject)
         db.session.commit()
     except Exception:
