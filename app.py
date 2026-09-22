@@ -125,10 +125,16 @@ class Admin(User):
     full_name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), nullable=False)
     phone = db.Column(db.String(20))
+    is_super_admin = db.Column(db.Boolean, default=False)
 
     __mapper_args__ = {
         'polymorphic_identity': 'admin',
     }
+
+    @property
+    def is_main_controller(self):
+        """The main controller account. No other admin may edit or delete it."""
+        return bool(self.is_super_admin)
 
 class Teacher(User):
     __tablename__ = 'teacher'
@@ -2380,6 +2386,9 @@ def edit_administrator(admin_id):
         return redirect(url_for('index'))
 
     administrator = Admin.query.get_or_404(admin_id)
+    if administrator.is_main_controller and administrator.id != current_user.id:
+        flash('Access denied. Only the main controller can edit their own information.', 'error')
+        return redirect(url_for('admin_administrators'))
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         existing_user = User.query.filter(User.username == username, User.id != administrator.id).first()
@@ -2413,6 +2422,9 @@ def delete_administrator(admin_id):
         return redirect(url_for('admin_administrators'))
 
     administrator = Admin.query.get_or_404(admin_id)
+    if administrator.is_main_controller:
+        flash('Access denied. The main controller account cannot be deleted.', 'error')
+        return redirect(url_for('admin_administrators'))
     log_activity(current_user.id, 'admin_delete', 'Admin', admin_id, f'Admin deleted administrator {administrator.full_name}')
     db.session.delete(administrator)
     db.session.commit()
@@ -3027,6 +3039,21 @@ def init_db():
                 except Exception:
                     db.session.rollback()
 
+        # Add the main-controller flag on the admin table (one-time upgrade).
+        admin_columns = {column['name'] for column in inspect(db.engine).get_columns('admin')}
+        if 'is_super_admin' not in admin_columns:
+            try:
+                db.session.execute(text('ALTER TABLE admin ADD COLUMN is_super_admin BOOLEAN DEFAULT 0'))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+
+        # Ensure exactly one main controller exists: the oldest admin account.
+        # This runs on every boot so the live database gets protected even
+        # though the column is added above on first run. It is placed AFTER
+        # the default-admin seeding so a fresh database gets its main
+        # controller on the very first boot.
+
         # Create default admin accounts if they don't exist
         if Admin.query.count() == 0:
             admins = [
@@ -3060,7 +3087,8 @@ def init_db():
                     role='admin',
                     full_name=admin_data['full_name'],
                     email=admin_data['email'],
-                    phone=admin_data['phone']
+                    phone=admin_data['phone'],
+                    is_super_admin=(admin_data['username'] == 'admin1')
                 )
                 db.session.add(admin)
             
@@ -3093,6 +3121,17 @@ def init_db():
             
             db.session.commit()
             print("Database initialized with default admin accounts and academic data")
+
+        # Ensure exactly one main controller exists: the oldest admin account.
+        # Placed after seeding so a fresh database is protected on first boot,
+        # and it re-runs on every boot so the live database is protected too.
+        try:
+            first_admin = Admin.query.order_by(Admin.id.asc()).first()
+            if first_admin and not first_admin.is_super_admin:
+                first_admin.is_super_admin = True
+                db.session.commit()
+        except Exception:
+            db.session.rollback()
 
 # Run once when the module is imported (needed for gunicorn/production, not just `python app.py`)
 init_db()

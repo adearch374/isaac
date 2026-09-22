@@ -225,9 +225,17 @@
                                     <td>{{ admin.full_name }}</td>
                                     <td>{{ admin.email }}</td>
                                     <td>{{ admin.phone or '-' }}</td>
-                                    <td><span class="status-badge status-{{ 'active' if admin.is_active else 'inactive' }}">{{ 'Active' if admin.is_active else 'Inactive' }}</span></td>
+                                    <td>{% if admin.is_main_controller %}<span class="status-badge">Main controller</span> {% endif %}<span class="status-badge status-{{ 'active' if admin.is_active else 'inactive' }}">{{ 'Active' if admin.is_active else 'Inactive' }}</span></td>
                                     <td>{{ admin.created_at.strftime('%B %d, %Y') }}</td>
                                     <td>
+                                        {% if admin.is_main_controller %}
+                                            {% if admin.id == current_user.id %}
+                                                <a href="{{ url_for('edit_administrator', admin_id=admin.id) }}" class="add-btn">Edit</a>
+                                                <span>Main controller</span>
+                                            {% else %}
+                                                <span>Main controller</span>
+                                            {% endif %}
+                                        {% else %}
                                         <a href="{{ url_for('edit_administrator', admin_id=admin.id) }}" class="add-btn">Edit</a>
                                         {% if admin.id != current_user.id %}
                                             <form method="POST" action="{{ url_for('delete_administrator', admin_id=admin.id) }}" style="display: inline;">
@@ -235,6 +243,7 @@
                                             </form>
                                         {% else %}
                                             <span>Current account</span>
+                                        {% endif %}
                                         {% endif %}
                                     </td>
                                 </tr>
