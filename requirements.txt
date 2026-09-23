@@ -5,3 +5,8 @@ Werkzeug==3.0.1
 python-dotenv==1.0.0
 gunicorn==22.0.0
 pg8000==1.31.2
+
+# Bulk student upload: file parsing (.csv via pandas, .xlsx via openpyxl, .xls via xlrd)
+pandas>=2.0.0
+openpyxl>=3.1.0
+xlrd>=2.0.1

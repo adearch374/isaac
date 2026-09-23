@@ -3136,5 +3136,260 @@ def init_db():
 # Run once when the module is imported (needed for gunicorn/production, not just `python app.py`)
 init_db()
 
+# ============================================================================
+# BULK STUDENT UPLOAD FEATURE (standalone addition — no existing code changed)
+# ----------------------------------------------------------------------------
+# Imports required by this feature. They live here (rather than at the very
+# top of the file) so the whole feature can be appended without editing any
+# existing lines. Move them up alongside the other imports if you prefer.
+# ============================================================================
+import csv
+import io
+import random
+
+import pandas as pd
+from flask import send_file
+
+# ----------------------------------------------------------------------------
+# Bulk upload helpers (used by the /admin/bulk-upload-students route)
+# ----------------------------------------------------------------------------
+
+def _bulk_cell(row, column):
+    """Return a cleaned string value from a DataFrame row ('' when missing)."""
+    value = row.get(column)
+    try:
+        if pd.isna(value):
+            return ''
+    except (TypeError, ValueError):
+        pass
+    return str(value).strip() if value is not None else ''
+
+
+def _bulk_name_part(value):
+    """Lowercase letters-only fragment of a name, used for username building."""
+    return ''.join(ch for ch in str(value or '').lower() if ch.isalpha())
+
+
+def generate_student_username(first_name, last_name, extra_taken=None):
+    """Build 'firstname.lastname' usernames, e.g. john.doe, then john.doe1, john.doe2..."""
+    extra_taken = extra_taken or set()
+    base = '.'.join(part for part in (_bulk_name_part(first_name), _bulk_name_part(last_name)) if part) or 'student'
+    username = base
+    counter = 1
+    while User.query.filter_by(username=username).first() is not None or username in extra_taken:
+        username = f'{base}{counter}'
+        counter += 1
+    return username
+
+
+def generate_student_password(first_name):
+    """Readable password with the student's name, digits and a symbol, e.g. John482@2026."""
+    name = _bulk_name_part(first_name).capitalize() or 'Student'
+    return f'{name}{random.randint(100, 999)}@{datetime.utcnow().year}'
+
+
+def generate_student_lin():
+    """Auto-generate a unique Learners Identification Number (Student.student_id)."""
+    while True:
+        lin = f'LP{datetime.utcnow().year}{uuid.uuid4().hex[:6].upper()}'
+        if not Student.query.filter_by(student_id=lin).first():
+            return lin
+
+
+def _bulk_parse_date(value):
+    """Parse a Date of Birth cell (pandas Timestamp, datetime or string) into a date."""
+    if value is None:
+        return None
+    try:
+        if pd.isna(value):
+            return None
+    except (TypeError, ValueError):
+        pass
+    if isinstance(value, datetime):
+        return value.date()
+    if hasattr(value, 'date') and callable(value.date):
+        try:
+            return value.date()
+        except (TypeError, ValueError):
+            pass
+    text = str(value).strip()
+    for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%d.%m.%Y', '%m/%d/%Y'):
+        try:
+            return datetime.strptime(text, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+def _bulk_normalize_gender(value):
+    """Normalise gender values to 'Male'/'Female' where recognisable."""
+    text = str(value or '').strip().lower()
+    if text.startswith('m'):
+        return 'Male'
+    if text.startswith('f'):
+        return 'Female'
+    return str(value or '').strip()[:10] or None
+
+
+def parse_bulk_upload_file(upload):
+    """Read an uploaded .csv/.xlsx/.xls file into a DataFrame with cleaned headers."""
+    filename = secure_filename(upload.filename or '')
+    extension = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+    if extension not in ('csv', 'xlsx', 'xls'):
+        return None, 'Unsupported file type. Please upload a .csv, .xlsx or .xls file.'
+    data = io.BytesIO(upload.read())
+    data.seek(0)
+    try:
+        if extension == 'csv':
+            try:
+                df = pd.read_csv(data)
+            except UnicodeDecodeError:
+                data.seek(0)
+                df = pd.read_csv(data, encoding='latin-1')
+        else:
+            df = pd.read_excel(data, engine='openpyxl' if extension == 'xlsx' else 'xlrd')
+    except ImportError:
+        return None, ('Reading legacy .xls files requires the "xlrd" package (pip install xlrd). '
+                      'Alternatively, re-save the sheet as .xlsx or .csv.')
+    except Exception as exc:
+        return None, f'Could not read the uploaded file: {exc}'
+    df.columns = [str(col).strip() for col in df.columns]
+    missing = [col for col in ('First Name', 'Last Name') if col not in df.columns]
+    if missing:
+        return None, ('Missing required column(s): ' + ', '.join(missing) +
+                      '. Expected columns: First Name, Last Name, Class, Date of Birth, Gender.')
+    return df, None
+
+@app.route('/admin/bulk-upload-students', methods=['GET', 'POST'])
+@login_required
+def bulk_upload_students():
+    """Bulk-create students from a .csv/.xlsx/.xls file and download their credentials.
+
+    Expected columns: First Name, Last Name, Class, Date of Birth, Gender.
+    Usernames are generated as firstname.lastname (john.doe, john.doe1, ...),
+    passwords are readable one-time credentials (John482@2026) that are hashed
+    in the database and returned ONLY inside the downloaded CSV.
+    """
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+
+    classes = Class.query.filter_by(is_active=True).order_by(Class.name).all()
+
+    if request.method == 'POST':
+        upload = request.files.get('file')
+        if not upload or not upload.filename:
+            flash('Please choose a .csv, .xlsx or .xls file to upload', 'error')
+            return redirect(url_for('bulk_upload_students'))
+
+        df, parse_error = parse_bulk_upload_file(upload)
+        if parse_error:
+            flash(parse_error, 'error')
+            return redirect(url_for('bulk_upload_students'))
+
+        if len(df) > 1000:
+            flash(f'The file contains {len(df)} rows. Please upload at most 1000 students per file.', 'error')
+            return redirect(url_for('bulk_upload_students'))
+
+        class_lookup = {c.name.strip().lower(): c for c in classes}
+        results = []       # rows written to the credentials CSV
+        created_count = 0
+        error_count = 0
+        taken_usernames = set()
+
+        for index, row in df.iterrows():
+            row_number = index + 2  # +2 accounts for the header row
+            first_name = _bulk_cell(row, 'First Name')
+            last_name = _bulk_cell(row, 'Last Name')
+            class_name = _bulk_cell(row, 'Class')
+            gender = _bulk_normalize_gender(_bulk_cell(row, 'Gender'))
+            date_of_birth = _bulk_parse_date(row.get('Date of Birth'))
+            full_name = f'{first_name} {last_name}'.strip()
+
+            failure = None
+            class_obj = None
+            if not first_name or not last_name:
+                failure = 'First Name and Last Name are required'
+            elif not class_name:
+                failure = 'Class is required'
+            else:
+                class_obj = class_lookup.get(class_name.strip().lower())
+                if class_obj is None:
+                    failure = f'Class "{class_name}" does not exist - create it first'
+
+            if failure:
+                error_count += 1
+                results.append({
+                    'First Name': first_name, 'Last Name': last_name, 'Class': class_name,
+                    'Date of Birth': str(date_of_birth or ''), 'Gender': gender,
+                    'Username': '', 'Password': '', 'LIN': '', 'Status': f'Skipped: {failure}',
+                })
+                continue
+
+            try:
+                username = generate_student_username(first_name, last_name, extra_taken=taken_usernames)
+                plain_password = generate_student_password(first_name)
+                lin = generate_student_lin()
+
+                student = Student(
+                    username=username,
+                    password_hash=generate_password_hash(plain_password),
+                    role='student',
+                    full_name=full_name.title(),
+                    student_id=lin,
+                    date_of_birth=date_of_birth,
+                    gender=gender,
+                    class_id=class_obj.id,
+                    must_change_password=True
+                )
+                db.session.add(student)
+                db.session.flush()  # populate student.id for the activity log
+                log_activity(current_user.id, 'student_bulk_create', 'Student', student.id,
+                             f'Bulk upload created student {student.full_name} ({username})', commit=False)
+                db.session.commit()
+
+                taken_usernames.add(username)
+                created_count += 1
+                results.append({
+                    'First Name': first_name, 'Last Name': last_name, 'Class': class_obj.name,
+                    'Date of Birth': str(date_of_birth or ''), 'Gender': gender or '',
+                    'Username': username, 'Password': plain_password, 'LIN': lin, 'Status': 'Created',
+                })
+            except Exception as exc:
+                db.session.rollback()
+                error_count += 1
+                results.append({
+                    'First Name': first_name, 'Last Name': last_name, 'Class': class_name,
+                    'Date of Birth': str(date_of_birth or ''), 'Gender': gender or '',
+                    'Username': '', 'Password': '', 'LIN': '', 'Status': f'Failed: {exc}',
+                })
+
+        # Build the credentials workbook in memory (plain-text passwords are
+        # never stored in the database — they exist only in this download).
+        output = io.StringIO()
+        fieldnames = ['First Name', 'Last Name', 'Class', 'Date of Birth', 'Gender',
+                      'Username', 'Password', 'LIN', 'Status']
+        writer = csv.DictWriter(output, fieldnames=fieldnames)
+        writer.writeheader()
+        for result in results:
+            writer.writerow(result)
+        output.seek(0)
+
+        blob = io.BytesIO(output.getvalue().encode('utf-8-sig'))  # BOM so Excel opens it cleanly
+        blob.seek(0)
+
+        log_activity(current_user.id, 'bulk_upload_students', 'Student', None,
+                     f'Admin bulk-uploaded {created_count} student(s); {error_count} row(s) skipped', commit=False)
+        db.session.commit()
+
+        return send_file(
+            blob,
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name='generated_student_credentials.csv'
+        )
+
+    return render_template('admin/bulk_upload.html', classes=classes)
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

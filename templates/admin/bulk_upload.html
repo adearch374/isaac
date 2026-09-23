@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Upload Students - La Paix Group of Schools</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .dashboard-container { display: flex; min-height: 100vh; }
+
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header h2 { font-size: 1.2rem; margin-bottom: 5px; }
+        .sidebar-header p { font-size: 0.8rem; opacity: 0.7; }
+        .sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar-nav li { margin-bottom: 5px; }
+        .sidebar-nav a {
+            display: block;
+            padding: 12px 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-nav a:hover,
+        .sidebar-nav a.active { background: rgba(255,255,255,0.1); }
+
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .top-bar h1 { color: #1e3c72; font-size: 1.8rem; margin: 0; }
+
+        .back-btn {
+            padding: 10px 20px;
+            background: #6c757d;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .back-btn:hover { background: #5a6268; }
+
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 720px;
+        }
+
+        .form-group { margin-bottom: 20px; }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1e3c72;
+            font-weight: 500;
+        }
+
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus { outline: none; border-color: #1e3c72; }
+
+        .submit-btn {
+            padding: 12px 30px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        .submit-btn:hover { background: #218838; }
+
+        .info-text { color: #666; font-size: 0.9rem; margin-top: 5px; }
+
+        .alert { padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .alert.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .instructions { background: #f8f9fa; border-left: 4px solid #1e3c72; padding: 15px 20px; border-radius: 0 5px 5px 0; }
+        .instructions h3 { margin-top: 0; color: #1e3c72; }
+        .instructions ul { padding-left: 20px; margin-bottom: 0; }
+        .instructions li { margin-bottom: 6px; color: #444; font-size: 0.92rem; }
+        .instructions code { background: #e9ecef; padding: 1px 6px; border-radius: 3px; font-size: 0.85em; }
+
+        .class-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .class-tag {
+            background: #e8edf7;
+            color: #1e3c72;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: -250px; transition: left 0.3s; z-index: 100; }
+            .sidebar.active { left: 0; }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Admin Panel</h2>
+                <p>La Paix Group of Schools</p>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ url_for('admin_students') }}">Students</a></li>
+                    <li><a href="{{ url_for('admin_teachers') }}">Teachers</a></li>
+                    <li><a href="{{ url_for('admin_classes') }}">Classes</a></li>
+                    <li><a href="{{ url_for('admin_subjects') }}">Subjects</a></li>
+                    <li><a href="{{ url_for('admin_teacher_requests') }}">Teacher Requests</a></li>
+                    <li><a href="{{ url_for('admin_results') }}">Results</a></li>
+                    <li><a href="{{ url_for('admin_attendance') }}">Attendance</a></li>
+                    <li><a href="{{ url_for('admin_timetable') }}">Timetable</a></li>
+                    <li><a href="{{ url_for('admin_academic_sessions') }}">Academic Sessions</a></li>
+                    <li><a href="{{ url_for('admin_terms') }}">Terms</a></li>
+                    <li><a href="{{ url_for('admin_news') }}">News</a></li>
+                    <li><a href="{{ url_for('admin_events') }}">Events</a></li>
+                    <li><a href="{{ url_for('admin_gallery') }}">Gallery</a></li>
+                    <li><a href="{{ url_for('admin_administrators') }}">Administrators</a></li>
+                    <li><a href="{{ url_for('admin_activity_logs') }}">Activity Logs</a></li>
+                    <li><a href="{{ url_for('admin_settings') }}">Settings</a></li>
+                    <li><a href="{{ url_for('change_password') }}">Change Password</a></li>
+                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="top-bar">
+                <h1>Bulk Upload Students</h1>
+                <a href="{{ url_for('admin_students') }}" class="back-btn">Back to Students</a>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="form-container">
+                <div class="instructions">
+                    <h3>How it works</h3>
+                    <ul>
+                        <li>Prepare a file (<code>.csv</code>, <code>.xlsx</code> or <code>.xls</code>) with these columns: <strong>First Name</strong>, <strong>Last Name</strong>, <strong>Class</strong>, <strong>Date of Birth</strong>, <strong>Gender</strong>.</li>
+                        <li>The column headers must match the names above exactly (the order of the columns does not matter).</li>
+                        <li>The <strong>Class</strong> value must already exist in the system (see the list below). Date of Birth accepts <code>2012-05-14</code> or <code>14/05/2012</code>.</li>
+                        <li>Usernames and passwords are generated automatically. After uploading, a file <code>generated_student_credentials.csv</code> downloads immediately with every student's login details — save it and hand the credentials to the students.</li>
+                        <li>Passwords are stored securely (hashed) in the database; they appear only in that downloaded file, so keep it safe.</li>
+                        <li>Rows with problems (missing names, unknown class) are skipped and listed in the download's <em>Status</em> column — fix them and upload again; already-created students are not duplicated.</li>
+                    </ul>
+                </div>
+
+                <form method="POST" action="{{ url_for('bulk_upload_students') }}" enctype="multipart/form-data" style="margin-top: 25px;">
+                    <div class="form-group">
+                        <label for="file">Student list file</label>
+                        <input type="file" name="file" id="file" accept=".csv,.xlsx,.xls" required>
+                        <p class="info-text">Maximum 1000 students per upload. The total upload size is limited to 10&nbsp;MB.</p>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Upload &amp; Generate Credentials</button>
+                </form>
+
+                {% if classes %}
+                    <div style="margin-top: 25px;">
+                        <p class="info-text" style="margin-bottom: 4px;"><strong>Valid class names for the Class column:</strong></p>
+                        <div class="class-list">
+                            {% for class_obj in classes %}
+                                <span class="class-tag">{{ class_obj.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="info-text" style="margin-top: 20px;"><strong>Note:</strong> No active classes exist yet — create classes first (Classes → Add Class) before uploading students.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile sidebar toggle (mirrors the other admin pages)
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
