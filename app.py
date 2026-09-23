@@ -3140,6 +3140,9 @@ def init_db():
 
 # Run once when the module is imported (needed for gunicorn/production, not just `python app.py`)
 init_db()
+# Boot marker: if this line is NOT in the Render logs, the service is running
+# an older commit than the one deployed from GitHub.
+print('BOOT OK: schema migrations completed (is_super_admin postgres fix v2)')
 
 # ============================================================================
 # BULK STUDENT UPLOAD FEATURE (standalone addition — no existing code changed)
