@@ -128,6 +128,65 @@ class BulkUploadStudentsTests(unittest.TestCase):
         self.assertIn('1 row(s) were NOT added', page)
         self.assertIn('Status column', page)
 
+    def test_headers_are_case_insensitive_and_aliases_work(self):
+        self._login()
+        csv_text = (
+            'FIRST NAME,lastname,CLASS,dob,sex\n'
+            'Chidi,Okafor,jss1,2012-05-14,Male\n'
+        )
+        response = self.client.post(
+            '/admin/bulk-upload-students',
+            data={'file': (self._upload(csv_text), 'students.csv')},
+            content_type='multipart/form-data',
+        )
+        self.assertEqual(response.status_code, 200)
+
+        with app.app_context():
+            student = Student.query.filter_by(username='chidi.okafor').first()
+            self.assertIsNotNone(student)
+            self.assertEqual(student.class_id, self.class_id)
+
+    def test_file_without_class_column_is_rejected_upfront(self):
+        self._login()
+        csv_text = (
+            'First Name,Last Name,Date of Birth,Gender\n'
+            'Ada,Eze,14/05/2012,Female\n'
+        )
+        response = self.client.post(
+            '/admin/bulk-upload-students',
+            data={'file': (self._upload(csv_text), 'students.csv')},
+            content_type='multipart/form-data',
+            follow_redirects=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        page = response.get_data(as_text=True)
+        self.assertIn('Missing required column(s): Class', page)
+        self.assertIn('Your file has: First Name, Last Name, Date of Birth, Gender', page)
+
+        with app.app_context():
+            self.assertEqual(Student.query.count(), 0)
+
+    def test_banner_names_the_grouped_failure_reasons(self):
+        self._login()
+        csv_text = (
+            'First Name,Last Name,Class,Date of Birth,Gender\n'
+            'John,Doe,SS 99,14/05/2012,Male\n'
+            'Jane,Roe,SS 99,14/05/2012,Female\n'
+        )
+        response = self.client.post(
+            '/admin/bulk-upload-students',
+            data={'file': (self._upload(csv_text), 'students.csv')},
+            content_type='multipart/form-data',
+        )
+        self.assertEqual(response.status_code, 200)
+
+        page = self.client.get('/admin/students').get_data(as_text=True)
+        self.assertIn('2 row(s) were NOT added', page)
+        self.assertIn('Reasons:', page)
+        self.assertIn('SS 99', page)
+        self.assertIn('does not exist', page)
+        self.assertIn('(2 row(s))', page)
+
     def test_duplicate_upload_does_not_duplicate_students(self):
         self._login()
         csv_text = (

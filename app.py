@@ -3271,12 +3271,25 @@ def parse_bulk_upload_file(upload):
                       'Alternatively, re-save the sheet as .xlsx or .csv.')
     except Exception as exc:
         return None, f'Could not read the uploaded file: {exc}'
-    df.columns = [str(col).strip() for col in df.columns]
-    missing = [col for col in ('First Name', 'Last Name') if col not in df.columns]
+    # Normalise headers so capitalisation and common aliases do not matter:
+    # "class", "CLASS" and "Class" all become "Class".
+    _header_aliases = {
+        'first name': 'First Name', 'firstname': 'First Name',
+        'last name': 'Last Name', 'lastname': 'Last Name',
+        'class': 'Class', 'class name': 'Class',
+        'date of birth': 'Date of Birth', 'dob': 'Date of Birth',
+        'gender': 'Gender', 'sex': 'Gender',
+        'lin': 'LIN', 'student id': 'LIN',
+    }
+    df.columns = [_header_aliases.get(str(col).strip().lower(), str(col).strip())
+                  for col in df.columns]
+    missing = [col for col in ('First Name', 'Last Name', 'Class') if col not in df.columns]
     if missing:
+        found = ', '.join(str(col) for col in df.columns) or '(none)'
         return None, ('Missing required column(s): ' + ', '.join(missing) +
-                      '. Expected columns: First Name, Last Name, Class, Date of Birth, Gender '
-                      '(an optional LIN column supplies the student ID).')
+                      f'. Your file has: {found}. Expected columns: First Name, Last Name, '
+                      'Class, Date of Birth, Gender (an optional LIN column supplies the '
+                      'student ID).')
     return df, None
 
 @app.route('/admin/bulk-upload-students', methods=['GET', 'POST'])
@@ -3316,6 +3329,7 @@ def bulk_upload_students():
         results = []       # rows written to the credentials CSV
         created_count = 0
         error_count = 0
+        reason_counts = {} # failure message -> how many rows hit it
         taken_usernames = set()
         taken_lins = set()
 
@@ -3362,6 +3376,7 @@ def bulk_upload_students():
 
             if failure:
                 error_count += 1
+                reason_counts[failure] = reason_counts.get(failure, 0) + 1
                 results.append({
                     'First Name': first_name, 'Last Name': last_name, 'Class': class_name,
                     'Date of Birth': str(date_of_birth or ''), 'Gender': gender,
@@ -3432,10 +3447,16 @@ def bulk_upload_students():
             flash(f'Bulk upload finished: {created_count} student(s) created. '
                   'Their login details are in the downloaded file.', 'success')
         if error_count:
-            flash(f'{error_count} row(s) were NOT added. Open the downloaded file and check the '
-                  'Status column for the reason (duplicate student, class name mismatch, or '
-                  'duplicate LIN). Rows that are already in the system are skipped safely and '
-                  'will not be created twice.', 'error')
+            # Name the actual reasons (grouped, most frequent first) so the
+            # admin does not have to open the file to find out what went wrong.
+            top = sorted(reason_counts.items(), key=lambda kv: kv[1], reverse=True)
+            parts = [f'{reason} ({count} row(s))' for reason, count in top[:3]]
+            if len(top) > 3:
+                parts.append(f'{len(top) - 3} other reason(s)')
+            flash(f'{error_count} row(s) were NOT added. Reasons: ' + '; '.join(parts) +
+                  '. Full detail is in the Status column of the downloaded file. '
+                  'Rows already in the system are skipped safely and are never '
+                  'created twice.', 'error')
 
         return send_file(
             blob,
