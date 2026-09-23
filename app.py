@@ -3162,6 +3162,10 @@ def _bulk_cell(row, column):
             return ''
     except (TypeError, ValueError):
         pass
+    # Excel/pandas turn whole-number cells into floats (12345 -> 12345.0);
+    # show them the way the admin typed them.
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
     return str(value).strip() if value is not None else ''
 
 
@@ -3257,7 +3261,8 @@ def parse_bulk_upload_file(upload):
     missing = [col for col in ('First Name', 'Last Name') if col not in df.columns]
     if missing:
         return None, ('Missing required column(s): ' + ', '.join(missing) +
-                      '. Expected columns: First Name, Last Name, Class, Date of Birth, Gender.')
+                      '. Expected columns: First Name, Last Name, Class, Date of Birth, Gender '
+                      '(an optional LIN column supplies the student ID).')
     return df, None
 
 @app.route('/admin/bulk-upload-students', methods=['GET', 'POST'])
@@ -3266,6 +3271,8 @@ def bulk_upload_students():
     """Bulk-create students from a .csv/.xlsx/.xls file and download their credentials.
 
     Expected columns: First Name, Last Name, Class, Date of Birth, Gender.
+    An optional LIN column supplies the Learners Identification Number
+    (Student.student_id) directly; when it is blank or absent one is generated.
     Usernames are generated as firstname.lastname (john.doe, john.doe1, ...),
     passwords are readable one-time credentials (John482@2026) that are hashed
     in the database and returned ONLY inside the downloaded CSV.
@@ -3296,6 +3303,7 @@ def bulk_upload_students():
         created_count = 0
         error_count = 0
         taken_usernames = set()
+        taken_lins = set()
 
         for index, row in df.iterrows():
             row_number = index + 2  # +2 accounts for the header row
@@ -3304,6 +3312,7 @@ def bulk_upload_students():
             class_name = _bulk_cell(row, 'Class')
             gender = _bulk_normalize_gender(_bulk_cell(row, 'Gender'))
             date_of_birth = _bulk_parse_date(row.get('Date of Birth'))
+            lin_input = _bulk_cell(row, 'LIN').upper()
             full_name = f'{first_name} {last_name}'.strip()
 
             failure = None
@@ -3316,20 +3325,25 @@ def bulk_upload_students():
                 class_obj = class_lookup.get(class_name.strip().lower())
                 if class_obj is None:
                     failure = f'Class "{class_name}" does not exist - create it first'
+                elif lin_input:
+                    # The LIN column is optional; when present it must be unique
+                    # both inside the uploaded file and in the database.
+                    if lin_input in taken_lins or Student.query.filter_by(student_id=lin_input).first():
+                        failure = f'LIN "{lin_input}" already exists'
 
             if failure:
                 error_count += 1
                 results.append({
                     'First Name': first_name, 'Last Name': last_name, 'Class': class_name,
                     'Date of Birth': str(date_of_birth or ''), 'Gender': gender,
-                    'Username': '', 'Password': '', 'LIN': '', 'Status': f'Skipped: {failure}',
+                    'LIN': lin_input, 'Username': '', 'Password': '', 'Status': f'Skipped: {failure}',
                 })
                 continue
 
             try:
                 username = generate_student_username(first_name, last_name, extra_taken=taken_usernames)
                 plain_password = generate_student_password(first_name)
-                lin = generate_student_lin()
+                lin = lin_input or generate_student_lin()
 
                 student = Student(
                     username=username,
@@ -3339,8 +3353,7 @@ def bulk_upload_students():
                     student_id=lin,
                     date_of_birth=date_of_birth,
                     gender=gender,
-                    class_id=class_obj.id,
-                    must_change_password=True
+                    class_id=class_obj.id
                 )
                 db.session.add(student)
                 db.session.flush()  # populate student.id for the activity log
@@ -3349,6 +3362,8 @@ def bulk_upload_students():
                 db.session.commit()
 
                 taken_usernames.add(username)
+                if lin_input:
+                    taken_lins.add(lin_input)
                 created_count += 1
                 results.append({
                     'First Name': first_name, 'Last Name': last_name, 'Class': class_obj.name,
@@ -3361,7 +3376,7 @@ def bulk_upload_students():
                 results.append({
                     'First Name': first_name, 'Last Name': last_name, 'Class': class_name,
                     'Date of Birth': str(date_of_birth or ''), 'Gender': gender or '',
-                    'Username': '', 'Password': '', 'LIN': '', 'Status': f'Failed: {exc}',
+                    'LIN': lin_input, 'Username': '', 'Password': '', 'Status': f'Failed: {exc}',
                 })
 
         # Build the credentials workbook in memory (plain-text passwords are
