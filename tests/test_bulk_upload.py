@@ -1,6 +1,9 @@
 import io
+import os
 import unittest
+from unittest.mock import patch
 
+import app as app_module
 from app import app, db, Class, User, Admin, Student
 
 
@@ -208,6 +211,54 @@ class BulkUploadStudentsTests(unittest.TestCase):
         # The second upload must not create a duplicate student.
         second_body = second.get_data(as_text=True)
         self.assertIn('already exists', second_body)
+
+        with app.app_context():
+            self.assertEqual(Student.query.count(), 1)
+
+
+    def test_gunicorn_config_allows_long_uploads(self):
+        # gunicorn auto-loads gunicorn.conf.py from the working directory; its
+        # timeout must stay well above the old 30s default or the worker is
+        # killed mid-upload and the credentials file never downloads.
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'gunicorn.conf.py')
+        namespace = {}
+        with open(config_path, encoding='utf-8') as fh:
+            exec(compile(fh.read(), config_path, 'exec'), namespace)
+        self.assertGreaterEqual(namespace['timeout'], 120)
+        self.assertGreaterEqual(namespace['graceful_timeout'], 120)
+
+    def test_unexpected_row_error_still_downloads_credentials(self):
+        # Simulate a crash while reading the 2nd row: the upload must still
+        # return the CSV containing the row created before the crash.
+        self._login()
+        original_parse_date = app_module._bulk_parse_date
+        calls = {'n': 0}
+
+        def flaky_parse_date(value):
+            calls['n'] += 1
+            if calls['n'] == 2:
+                raise RuntimeError('simulated mid-upload crash')
+            return original_parse_date(value)
+
+        csv_text = (
+            'First Name,Last Name,Class,Date of Birth,Gender\n'
+            'Ada,Eze,JSS 1,14/05/2012,Female\n'
+            'John,Doe,JSS 1,14/05/2012,Male\n'
+        )
+        with patch.object(app_module, '_bulk_parse_date', flaky_parse_date):
+            response = self.client.post(
+                '/admin/bulk-upload-students',
+                data={'file': (self._upload(csv_text), 'students.csv')},
+                content_type='multipart/form-data',
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('generated_student_credentials.csv',
+                      response.headers.get('Content-Disposition', ''))
+        body = response.get_data(as_text=True)
+        self.assertIn('Created', body)
+        self.assertIn('Unexpected error while reading this row', body)
+        self.assertIn('simulated mid-upload crash', body)
 
         with app.app_context():
             self.assertEqual(Student.query.count(), 1)

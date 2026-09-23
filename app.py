@@ -3335,44 +3335,57 @@ def bulk_upload_students():
 
         for index, row in df.iterrows():
             row_number = index + 2  # +2 accounts for the header row
-            first_name = _bulk_cell(row, 'First Name')
-            last_name = _bulk_cell(row, 'Last Name')
-            class_name = _bulk_cell(row, 'Class')
-            gender = _bulk_normalize_gender(_bulk_cell(row, 'Gender'))
-            date_of_birth = _bulk_parse_date(row.get('Date of Birth'))
-            lin_input = _bulk_cell(row, 'LIN').upper()
-            full_name = f'{first_name} {last_name}'.strip()
-
+            # Defaults so the except-block below can always report a row even
+            # when reading it fails halfway through.
             failure = None
             class_obj = None
-            if not first_name or not last_name:
-                failure = 'First Name and Last Name are required'
-            elif not class_name:
-                failure = 'Class is required'
-            else:
-                # Class matching ignores spaces and case, so "JSS1" matches
-                # the class "JSS 1".
-                class_obj = class_lookup.get(class_name.strip().lower().replace(' ', ''))
-                if class_obj is None:
-                    failure = f'Class "{class_name}" does not exist - create it first'
-                elif lin_input:
-                    # The LIN column is optional; when present it must be unique
-                    # both inside the uploaded file and in the database.
-                    if lin_input in taken_lins or Student.query.filter_by(student_id=lin_input).first():
-                        failure = f'LIN "{lin_input}" already exists'
+            first_name = last_name = class_name = lin_input = ''
+            gender = None
+            date_of_birth = None
+            full_name = ''
+            try:
+                first_name = _bulk_cell(row, 'First Name')
+                last_name = _bulk_cell(row, 'Last Name')
+                class_name = _bulk_cell(row, 'Class')
+                gender = _bulk_normalize_gender(_bulk_cell(row, 'Gender'))
+                date_of_birth = _bulk_parse_date(row.get('Date of Birth'))
+                lin_input = _bulk_cell(row, 'LIN').upper()
+                full_name = f'{first_name} {last_name}'.strip()
 
-            if failure is None and class_obj is not None:
-                # The same person in the same class already exists (for example
-                # the file is being uploaded a second time) - never create
-                # duplicates. Checked against name, class and date of birth.
-                duplicate = Student.query.filter(
-                    Student.class_id == class_obj.id,
-                    Student.full_name.ilike(full_name),
-                )
-                if date_of_birth is not None:
-                    duplicate = duplicate.filter(Student.date_of_birth == date_of_birth)
-                if duplicate.first():
-                    failure = 'student already exists (same name, class and date of birth)'
+                if not first_name or not last_name:
+                    failure = 'First Name and Last Name are required'
+                elif not class_name:
+                    failure = 'Class is required'
+                else:
+                    # Class matching ignores spaces and case, so "JSS1" matches
+                    # the class "JSS 1".
+                    class_obj = class_lookup.get(class_name.strip().lower().replace(' ', ''))
+                    if class_obj is None:
+                        failure = f'Class "{class_name}" does not exist - create it first'
+                    elif lin_input:
+                        # The LIN column is optional; when present it must be unique
+                        # both inside the uploaded file and in the database.
+                        if lin_input in taken_lins or Student.query.filter_by(student_id=lin_input).first():
+                            failure = f'LIN "{lin_input}" already exists'
+
+                if failure is None and class_obj is not None:
+                    # The same person in the same class already exists (for example
+                    # the file is being uploaded a second time) - never create
+                    # duplicates. Checked against name, class and date of birth.
+                    duplicate = Student.query.filter(
+                        Student.class_id == class_obj.id,
+                        Student.full_name.ilike(full_name),
+                    )
+                    if date_of_birth is not None:
+                        duplicate = duplicate.filter(Student.date_of_birth == date_of_birth)
+                    if duplicate.first():
+                        failure = 'student already exists (same name, class and date of birth)'
+            except Exception as exc:
+                # Never let one broken row abort the whole upload: record the
+                # row, keep going, and the credentials file still downloads.
+                db.session.rollback()
+                class_obj = None
+                failure = f'Unexpected error while reading this row: {exc}'
 
             if failure:
                 error_count += 1
@@ -3416,6 +3429,8 @@ def bulk_upload_students():
                 })
             except Exception as exc:
                 db.session.rollback()
+                reason = f'Failed: {exc}'
+                reason_counts[reason] = reason_counts.get(reason, 0) + 1
                 error_count += 1
                 results.append({
                     'First Name': first_name, 'Last Name': last_name, 'Class': class_name,
@@ -3437,9 +3452,13 @@ def bulk_upload_students():
         blob = io.BytesIO(output.getvalue().encode('utf-8-sig'))  # BOM so Excel opens it cleanly
         blob.seek(0)
 
-        log_activity(current_user.id, 'bulk_upload_students', 'Student', None,
-                     f'Admin bulk-uploaded {created_count} student(s); {error_count} row(s) skipped', commit=False)
-        db.session.commit()
+        # Bookkeeping must never block the credentials download below.
+        try:
+            log_activity(current_user.id, 'bulk_upload_students', 'Student', None,
+                         f'Admin bulk-uploaded {created_count} student(s); {error_count} row(s) skipped', commit=False)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
 
         # The response is a file download, so flashes ride along in the session
         # cookie and appear on whatever page the admin opens next.
