@@ -3040,13 +3040,18 @@ def init_db():
                     db.session.rollback()
 
         # Add the main-controller flag on the admin table (one-time upgrade).
+        # NOTE: "DEFAULT FALSE" is required — Postgres rejects "DEFAULT 0" for a
+        # boolean column ("column is of type boolean but default expression is
+        # of type integer"), which silently aborted this migration on Render and
+        # crashed every later query against the admin table.
         admin_columns = {column['name'] for column in inspect(db.engine).get_columns('admin')}
         if 'is_super_admin' not in admin_columns:
             try:
-                db.session.execute(text('ALTER TABLE admin ADD COLUMN is_super_admin BOOLEAN DEFAULT 0'))
+                db.session.execute(text('ALTER TABLE admin ADD COLUMN is_super_admin BOOLEAN DEFAULT FALSE'))
                 db.session.commit()
-            except Exception:
+            except Exception as exc:
                 db.session.rollback()
+                print(f'WARNING: could not add admin.is_super_admin column: {exc}')
 
         # Ensure exactly one main controller exists: the oldest admin account.
         # This runs on every boot so the live database gets protected even
