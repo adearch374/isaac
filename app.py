@@ -3312,7 +3312,7 @@ def bulk_upload_students():
             flash(f'The file contains {len(df)} rows. Please upload at most 1000 students per file.', 'error')
             return redirect(url_for('bulk_upload_students'))
 
-        class_lookup = {c.name.strip().lower(): c for c in classes}
+        class_lookup = {c.name.strip().lower().replace(' ', ''): c for c in classes}
         results = []       # rows written to the credentials CSV
         created_count = 0
         error_count = 0
@@ -3336,7 +3336,9 @@ def bulk_upload_students():
             elif not class_name:
                 failure = 'Class is required'
             else:
-                class_obj = class_lookup.get(class_name.strip().lower())
+                # Class matching ignores spaces and case, so "JSS1" matches
+                # the class "JSS 1".
+                class_obj = class_lookup.get(class_name.strip().lower().replace(' ', ''))
                 if class_obj is None:
                     failure = f'Class "{class_name}" does not exist - create it first'
                 elif lin_input:
@@ -3344,6 +3346,19 @@ def bulk_upload_students():
                     # both inside the uploaded file and in the database.
                     if lin_input in taken_lins or Student.query.filter_by(student_id=lin_input).first():
                         failure = f'LIN "{lin_input}" already exists'
+
+            if failure is None and class_obj is not None:
+                # The same person in the same class already exists (for example
+                # the file is being uploaded a second time) - never create
+                # duplicates. Checked against name, class and date of birth.
+                duplicate = Student.query.filter(
+                    Student.class_id == class_obj.id,
+                    Student.full_name.ilike(full_name),
+                )
+                if date_of_birth is not None:
+                    duplicate = duplicate.filter(Student.date_of_birth == date_of_birth)
+                if duplicate.first():
+                    failure = 'student already exists (same name, class and date of birth)'
 
             if failure:
                 error_count += 1
@@ -3410,6 +3425,17 @@ def bulk_upload_students():
         log_activity(current_user.id, 'bulk_upload_students', 'Student', None,
                      f'Admin bulk-uploaded {created_count} student(s); {error_count} row(s) skipped', commit=False)
         db.session.commit()
+
+        # The response is a file download, so flashes ride along in the session
+        # cookie and appear on whatever page the admin opens next.
+        if created_count:
+            flash(f'Bulk upload finished: {created_count} student(s) created. '
+                  'Their login details are in the downloaded file.', 'success')
+        if error_count:
+            flash(f'{error_count} row(s) were NOT added. Open the downloaded file and check the '
+                  'Status column for the reason (duplicate student, class name mismatch, or '
+                  'duplicate LIN). Rows that are already in the system are skipped safely and '
+                  'will not be created twice.', 'error')
 
         return send_file(
             blob,
