@@ -3049,9 +3049,15 @@ def init_db():
             try:
                 db.session.execute(text('ALTER TABLE admin ADD COLUMN is_super_admin BOOLEAN DEFAULT FALSE'))
                 db.session.commit()
-            except Exception as exc:
+            except Exception:
                 db.session.rollback()
-                print(f'WARNING: could not add admin.is_super_admin column: {exc}')
+                # Stricter Postgres setups reject the DEFAULT clause; retry bare.
+                try:
+                    db.session.execute(text('ALTER TABLE admin ADD COLUMN is_super_admin BOOLEAN'))
+                    db.session.commit()
+                except Exception as exc:
+                    db.session.rollback()
+                    print(f'WARNING: could not add admin.is_super_admin column: {exc}')
 
         # Ensure exactly one main controller exists: the oldest admin account.
         # This runs on every boot so the live database gets protected even
