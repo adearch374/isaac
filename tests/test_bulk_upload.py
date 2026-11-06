@@ -47,6 +47,30 @@ class BulkUploadStudentsTests(unittest.TestCase):
     def _upload(csv_text):
         return io.BytesIO(csv_text.encode('utf-8'))
 
+    def test_manual_student_creation_generates_lin_when_not_provided(self):
+        self._login()
+        response = self.client.post(
+            '/admin/students/add',
+            data={
+                'username': 'janedoe',
+                'password': 'secret123',
+                'full_name': 'Jane Doe',
+                'email': 'jane@example.com',
+                'phone': '123456789',
+                'date_of_birth': '2012-05-14',
+                'gender': 'Female',
+                'class_id': str(self.class_id),
+            },
+            follow_redirects=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        with app.app_context():
+            student = Student.query.filter_by(username='janedoe').first()
+            self.assertIsNotNone(student)
+            self.assertTrue(student.student_id.startswith('LP'))
+            self.assertGreater(len(student.student_id), 10)
+
     def test_upload_creates_students_even_when_class_ignores_spaces_and_case(self):
         self._login()
         csv_text = (

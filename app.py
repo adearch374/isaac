@@ -706,16 +706,14 @@ def add_student():
         return redirect(url_for('index'))
     
     if request.method == 'POST':
-        # Get manual LIN (Learners Identification Number)
-        lin = request.form.get('student_id')
-        if not lin:
-            flash('Learners Identification Number (LIN) is required', 'error')
-            return redirect(url_for('add_student'))
-        
-        # Check if LIN already exists
-        if Student.query.filter_by(student_id=lin).first():
+        # LIN is optional for manual student entry. If no custom value is supplied,
+        # generate one automatically so the database constraint is still satisfied.
+        lin = (request.form.get('student_id') or '').strip()
+        if lin and Student.query.filter_by(student_id=lin).first():
             flash('Learners Identification Number (LIN) already exists', 'error')
             return redirect(url_for('add_student'))
+        if not lin:
+            lin = generate_student_lin()
         
         # Generate username
         username = request.form.get('username')
