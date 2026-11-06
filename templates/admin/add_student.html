@@ -305,14 +305,14 @@
                 <h2>Student Information</h2>
                 
                 <div class="info-text">
-                    <p><strong>Note:</strong> Enter the Learners Identification Number (LIN) manually. This must be unique for each student. You can set a temporary password. Only administrators can change passwords.</p>
+                    <p><strong>Note:</strong> The LIN is optional. If you leave it blank, the system will generate a unique Learners Identification Number automatically. You can set a temporary password. Only administrators can change passwords.</p>
                 </div>
 
                 <form method="POST" action="{{ url_for('add_student') }}">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="student_id">LIN (Learners Identification Number) *</label>
-                            <input type="text" id="student_id" name="student_id" required placeholder="e.g., LIN2024001">
+                            <label for="student_id">LIN (Learners Identification Number)</label>
+                            <input type="text" id="student_id" name="student_id" placeholder="Optional: e.g., LIN2024001">
                         </div>
 
                         <div class="form-group">
