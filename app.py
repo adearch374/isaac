@@ -756,22 +756,58 @@ def delete_student(student_id):
         return redirect(url_for('index'))
     
     student = Student.query.get_or_404(student_id)
-    name = student.full_name
     try:
-        # Remove rows that point at this student first; otherwise the
-        # database rejects the delete (NOT NULL foreign keys).
-        Attendance.query.filter_by(student_id=student.id).delete(synchronize_session=False)
-        Result.query.filter_by(student_id=student.id).delete(synchronize_session=False)
-        StudentSubjectChoice.query.filter_by(student_id=student.id).delete(synchronize_session=False)
-        Submission.query.filter_by(student_id=student.id).delete(synchronize_session=False)
-        log_activity(current_user.id, 'student_delete', 'Student', student_id, f'Admin deleted student {name}')
-        db.session.delete(student)
+        _delete_student_records(student)
         db.session.commit()
     except Exception:
         db.session.rollback()
         flash('Unable to delete student. They may still have linked records.', 'error')
         return redirect(url_for('admin_students'))
     flash('Student deleted successfully', 'success')
+    return redirect(url_for('admin_students'))
+
+def _delete_student_records(student):
+    # Remove rows that point at this student first; otherwise the
+    # database rejects the delete (NOT NULL foreign keys).
+    Attendance.query.filter_by(student_id=student.id).delete(synchronize_session=False)
+    Result.query.filter_by(student_id=student.id).delete(synchronize_session=False)
+    StudentSubjectChoice.query.filter_by(student_id=student.id).delete(synchronize_session=False)
+    Submission.query.filter_by(student_id=student.id).delete(synchronize_session=False)
+    log_activity(current_user.id, 'student_delete', 'Student', student.id,
+                 f'Admin deleted student {student.full_name}', commit=False)
+    db.session.delete(student)
+
+@app.route('/admin/students/delete-selected', methods=['POST'])
+@login_required
+def bulk_delete_students():
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+
+    raw_student_ids = request.form.getlist('student_ids')
+    try:
+        student_ids = sorted({int(student_id) for student_id in raw_student_ids})
+        if not student_ids or any(student_id < 1 for student_id in student_ids):
+            raise ValueError
+    except ValueError:
+        flash('Select at least one valid student to delete.', 'error')
+        return redirect(url_for('admin_students'))
+
+    students = Student.query.filter(Student.id.in_(student_ids)).all()
+    if len(students) != len(student_ids):
+        flash('One or more selected students could not be found. No students were deleted.', 'error')
+        return redirect(url_for('admin_students'))
+
+    try:
+        for student in students:
+            _delete_student_records(student)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash('Unable to delete the selected students. No students were deleted.', 'error')
+        return redirect(url_for('admin_students'))
+
+    flash(f'{len(students)} student(s) deleted successfully.', 'success')
     return redirect(url_for('admin_students'))
 
 @app.route('/admin/students/<int:student_id>/edit', methods=['GET', 'POST'])

@@ -1,0 +1,1 @@
+Firebase Hosting is configured to route this Flask app through Cloud Run.
