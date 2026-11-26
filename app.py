@@ -3291,9 +3291,9 @@ def generate_student_username(first_name, last_name, extra_taken=None):
 
 
 def generate_student_password(first_name):
-    """Readable password with the student's name, digits and a symbol, e.g. John482@2026."""
+    """Readable password with the student's name and digits, e.g. John482."""
     name = _bulk_name_part(first_name).capitalize() or 'Student'
-    return f'{name}{random.randint(100, 999)}@{datetime.utcnow().year}'
+    return f'{name}{random.randint(100, 999)}'
 
 
 def generate_student_lin():
@@ -3391,7 +3391,7 @@ def bulk_upload_students():
     An optional LIN column supplies the Learners Identification Number
     (Student.student_id) directly; when it is blank or absent one is generated.
     Usernames are generated as firstname.lastname (john.doe, john.doe1, ...),
-    passwords are readable one-time credentials (John482@2026) that are hashed
+    passwords are readable one-time credentials (John482) that are hashed
     in the database and returned ONLY inside the downloaded CSV.
     """
     if current_user.role != 'admin':

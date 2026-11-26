@@ -47,6 +47,16 @@ class BulkUploadStudentsTests(unittest.TestCase):
     def _upload(csv_text):
         return io.BytesIO(csv_text.encode('utf-8'))
 
+    def test_generated_credentials_use_simple_name_format(self):
+        from app import generate_student_password, generate_student_username
+
+        with app.app_context():
+            username = generate_student_username('James', 'Okon')
+            password = generate_student_password('James')
+
+        self.assertEqual(username, 'james.okon')
+        self.assertRegex(password, r'^James\d{3}$')
+
     def test_manual_student_creation_generates_lin_when_not_provided(self):
         self._login()
         response = self.client.post(
@@ -90,6 +100,7 @@ class BulkUploadStudentsTests(unittest.TestCase):
         body = response.get_data(as_text=True)
         self.assertIn('Created', body)
         self.assertIn('james.okon', body)
+        self.assertRegex(body, r'James\d{3}')
 
         with app.app_context():
             student = Student.query.filter_by(username='james.okon').first()
