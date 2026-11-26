@@ -83,6 +83,21 @@ class BulkDeleteStudentsTests(unittest.TestCase):
         with app.app_context():
             self.assertEqual(Student.query.count(), 3)
 
+    def test_delete_all_students_removes_every_student(self):
+        response = self.client.post('/admin/students/delete-all')
+
+        self.assertEqual(response.status_code, 302)
+        with app.app_context():
+            self.assertEqual(Student.query.count(), 0)
+
+    def test_student_list_shows_delete_all_control(self):
+        response = self.client.get('/admin/students')
+
+        self.assertEqual(response.status_code, 200)
+        page = response.get_data(as_text=True)
+        self.assertIn('Delete All Students', page)
+        self.assertIn('/admin/students/delete-all', page)
+
 
 if __name__ == '__main__':
     unittest.main()

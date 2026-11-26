@@ -757,25 +757,44 @@ def delete_student(student_id):
     
     student = Student.query.get_or_404(student_id)
     try:
-        _delete_student_records(student)
+        submission_files = _delete_student_records(student)
         db.session.commit()
     except Exception:
         db.session.rollback()
         flash('Unable to delete student. They may still have linked records.', 'error')
         return redirect(url_for('admin_students'))
+    _remove_submission_files(submission_files)
     flash('Student deleted successfully', 'success')
     return redirect(url_for('admin_students'))
 
 def _delete_student_records(student):
     # Remove rows that point at this student first; otherwise the
     # database rejects the delete (NOT NULL foreign keys).
+    submission_files = [
+        submission.file_path
+        for submission in Submission.query.filter_by(student_id=student.id).all()
+        if submission.file_path
+    ]
     Attendance.query.filter_by(student_id=student.id).delete(synchronize_session=False)
     Result.query.filter_by(student_id=student.id).delete(synchronize_session=False)
     StudentSubjectChoice.query.filter_by(student_id=student.id).delete(synchronize_session=False)
     Submission.query.filter_by(student_id=student.id).delete(synchronize_session=False)
+    Notification.query.filter_by(user_id=student.id).delete(synchronize_session=False)
     log_activity(current_user.id, 'student_delete', 'Student', student.id,
                  f'Admin deleted student {student.full_name}', commit=False)
     db.session.delete(student)
+    return submission_files
+
+
+def _remove_submission_files(submission_files):
+    upload_root = os.path.abspath(app.config['ASSIGNMENT_UPLOAD_FOLDER'])
+    for filename in submission_files:
+        file_path = os.path.abspath(os.path.join(upload_root, filename))
+        if file_path.startswith(upload_root + os.sep) and os.path.isfile(file_path):
+            try:
+                os.remove(file_path)
+            except OSError:
+                app.logger.warning('Could not remove deleted student submission file: %s', filename)
 
 @app.route('/admin/students/delete-selected', methods=['POST'])
 @login_required
@@ -799,15 +818,52 @@ def bulk_delete_students():
         return redirect(url_for('admin_students'))
 
     try:
+        submission_files = []
         for student in students:
-            _delete_student_records(student)
+            submission_files.extend(_delete_student_records(student))
         db.session.commit()
     except Exception:
         db.session.rollback()
         flash('Unable to delete the selected students. No students were deleted.', 'error')
         return redirect(url_for('admin_students'))
 
+    _remove_submission_files(submission_files)
     flash(f'{len(students)} student(s) deleted successfully.', 'success')
+    return redirect(url_for('admin_students'))
+
+
+@app.route('/admin/students/delete-all', methods=['POST'])
+@login_required
+def delete_all_students():
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+
+    students = Student.query.order_by(Student.id).all()
+    if not students:
+        flash('There are no students to delete.', 'info')
+        return redirect(url_for('admin_students'))
+
+    submission_files = []
+    try:
+        for student in students:
+            submission_files.extend(_delete_student_records(student))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash('Unable to delete all students. No students were deleted.', 'error')
+        return redirect(url_for('admin_students'))
+
+    upload_root = os.path.abspath(app.config['ASSIGNMENT_UPLOAD_FOLDER'])
+    for filename in submission_files:
+        file_path = os.path.abspath(os.path.join(upload_root, filename))
+        if file_path.startswith(upload_root + os.sep) and os.path.isfile(file_path):
+            try:
+                os.remove(file_path)
+            except OSError:
+                app.logger.warning('Could not remove deleted student submission file: %s', filename)
+
+    flash(f'All {len(students)} student(s) and their linked records were deleted successfully.', 'success')
     return redirect(url_for('admin_students'))
 
 @app.route('/admin/students/<int:student_id>/edit', methods=['GET', 'POST'])

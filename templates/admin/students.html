@@ -330,6 +330,9 @@
                         <form id="bulk-delete-form" method="POST" action="{{ url_for('bulk_delete_students') }}" onsubmit="return confirmBulkDelete();">
                             <button id="bulk-delete-button" type="submit" class="btn btn-danger" disabled>Delete Selected (0)</button>
                         </form>
+                        <form method="POST" action="{{ url_for('delete_all_students') }}" onsubmit="return confirmDeleteAllStudents();">
+                            <button type="submit" class="btn btn-danger">Delete All Students</button>
+                        </form>
                     {% endif %}
                     <button onclick="printSelectedClass()" class="btn btn-primary">🖨️ Print Class List</button>
                     <a href="{{ url_for('add_student') }}" class="btn btn-success">+ Add Student</a>
@@ -420,6 +423,12 @@
             const selectedCount = document.querySelectorAll('.student-checkbox:checked').length;
             return selectedCount > 0 && confirm(
                 `Permanently delete ${selectedCount} selected student(s) and their linked records? This cannot be undone.`
+            );
+        }
+
+        function confirmDeleteAllStudents() {
+            return confirm(
+                'Permanently delete ALL students and their linked attendance, results, subject choices, submissions, notifications, and login accounts? This cannot be undone.'
             );
         }
 
