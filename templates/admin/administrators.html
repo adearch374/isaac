@@ -191,7 +191,10 @@
         <div class="main-content">
             <div class="top-bar">
                 <h1>Administrators</h1>
-                <a href="{{ url_for('add_administrator') }}" class="add-btn">Add Administrator</a>
+                <div class="action-buttons">
+                    <input type="text" class="search-box" data-portal-search data-search-table="administrators-table" placeholder="Search administrators...">
+                    <a href="{{ url_for('add_administrator') }}" class="add-btn">Add Administrator</a>
+                </div>
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -205,7 +208,7 @@
             <!-- Administrators Table -->
             <div class="table-container">
                 <div class="table-responsive">
-<table class="data-table">
+<table class="data-table" id="administrators-table">
                     <thead>
                         <tr>
                             <th>Username</th>

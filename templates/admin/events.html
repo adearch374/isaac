@@ -211,7 +211,10 @@
         <div class="main-content">
             <div class="top-bar">
                 <h1>Events Management</h1>
-                <a href="{{ url_for('add_event') }}" class="add-btn">Add Event</a>
+                <div class="action-buttons">
+                    <input type="text" class="search-box" data-portal-search data-search-table="events-table" placeholder="Search events...">
+                    <a href="{{ url_for('add_event') }}" class="add-btn">Add Event</a>
+                </div>
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -225,7 +228,7 @@
             <!-- Events Table -->
             <div class="table-container">
                 <div class="table-responsive">
-<table class="data-table">
+<table class="data-table" id="events-table">
                     <thead>
                         <tr>
                             <th>Title</th>

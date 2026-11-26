@@ -292,6 +292,7 @@
             <div class="top-bar">
                 <h1>Manage Subjects</h1>
                 <div class="action-buttons">
+                    <input type="text" class="search-box" data-portal-search data-search-table="subjects-table" placeholder="Search subjects...">
                     <a href="{{ url_for('add_subject') }}" class="btn btn-success">+ Add Subject</a>
                 </div>
             </div>
@@ -306,7 +307,7 @@
 
             {% if subjects %}
                 <div class="table-responsive">
-<table class="subjects-table">
+<table class="subjects-table" id="subjects-table">
                     <thead>
                         <tr>
                             <th>Class</th>

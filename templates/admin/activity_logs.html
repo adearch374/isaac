@@ -236,6 +236,10 @@
             <div class="filter-section">
                 <form method="GET" action="{{ url_for('admin_activity_logs') }}" class="filter-form">
                     <div class="form-group">
+                        <label for="activity-search">Search Logs</label>
+                        <input type="text" id="activity-search" class="search-box" data-portal-search data-search-table="activity-table" placeholder="Search activity logs...">
+                    </div>
+                    <div class="form-group">
                         <label for="action_filter">Filter by Action</label>
                         <select name="action" id="action_filter">
                             <option value="">All Actions</option>
@@ -263,7 +267,7 @@
             <!-- Activity Logs Table -->
             <div class="table-container">
                 <div class="table-responsive">
-<table class="data-table">
+<table class="data-table" id="activity-table">
                     <thead>
                         <tr>
                             <th>Timestamp</th>

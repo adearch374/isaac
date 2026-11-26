@@ -255,6 +255,10 @@
             <div class="filter-section">
                 <form method="GET" action="{{ url_for('admin_attendance') }}" class="filter-form">
                     <div class="form-group">
+                        <label for="attendance-search">Search Records</label>
+                        <input type="text" id="attendance-search" class="search-box" data-portal-search data-search-table="attendance-table" placeholder="Search attendance...">
+                    </div>
+                    <div class="form-group">
                         <label for="class_filter">Filter by Class</label>
                         <select name="class_id" id="class_filter">
                             <option value="">All Classes</option>
@@ -274,7 +278,7 @@
             <!-- Attendance Table -->
             <div class="table-container">
                 <div class="table-responsive">
-<table class="data-table">
+<table class="data-table" id="attendance-table">
                     <thead>
                         <tr>
                             <th>Date</th>

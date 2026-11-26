@@ -187,7 +187,10 @@
         <div class="main-content">
             <div class="top-bar">
                 <h1>Timetable Management</h1>
-                <a href="{{ url_for('add_timetable') }}" class="add-btn">Add Timetable Entry</a>
+                <div class="action-buttons">
+                    <input type="text" class="search-box" data-portal-search data-search-table="timetable-table" placeholder="Search timetable...">
+                    <a href="{{ url_for('add_timetable') }}" class="add-btn">Add Timetable Entry</a>
+                </div>
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -201,7 +204,7 @@
             <!-- Timetable Table -->
             <div class="table-container">
                 <div class="table-responsive">
-<table class="data-table">
+<table class="data-table" id="timetable-table">
                     <thead>
                         <tr>
                             <th>Day</th>

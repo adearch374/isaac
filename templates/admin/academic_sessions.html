@@ -209,7 +209,10 @@
         <div class="main-content">
             <div class="top-bar">
                 <h1>Academic Sessions</h1>
-                <a href="{{ url_for('add_academic_session') }}" class="add-btn">Add Academic Session</a>
+                <div class="action-buttons">
+                    <input type="text" class="search-box" data-portal-search data-search-table="sessions-table" placeholder="Search sessions...">
+                    <a href="{{ url_for('add_academic_session') }}" class="add-btn">Add Academic Session</a>
+                </div>
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -223,7 +226,7 @@
             <!-- Sessions Table -->
             <div class="table-container">
                 <div class="table-responsive">
-<table class="data-table">
+<table class="data-table" id="sessions-table">
                     <thead>
                         <tr>
                             <th>Session Name</th>

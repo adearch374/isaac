@@ -341,6 +341,7 @@
         <div class="main-content">
             <div class="top-bar">
                 <h1>Teacher Teaching Requests</h1>
+                <input type="text" class="search-box" data-portal-search data-search-table="requests-table" placeholder="Search requests...">
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -353,7 +354,7 @@
 
             {% if requests %}
                 <div class="table-responsive">
-<table class="requests-table">
+<table class="requests-table" id="requests-table">
                     <thead>
                         <tr>
                             <th>Teacher</th>

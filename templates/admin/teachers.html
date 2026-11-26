@@ -305,7 +305,7 @@
             <div class="top-bar">
                 <h1>Manage Teachers</h1>
                 <div class="action-buttons">
-                    <input type="text" class="search-box" placeholder="Search teachers...">
+                    <input type="text" class="search-box" data-portal-search data-search-table="teachers-table" placeholder="Search teachers...">
                     <a href="{{ url_for('add_teacher') }}" class="btn btn-success">+ Add Teacher</a>
                 </div>
             </div>
@@ -320,7 +320,7 @@
 
             {% if teachers %}
                 <div class="table-responsive">
-<table class="teachers-table">
+<table class="teachers-table" id="teachers-table">
                     <thead>
                         <tr>
                             <th>Teacher ID</th>

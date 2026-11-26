@@ -100,8 +100,9 @@ def add_security_headers(response):
         html = response.get_data(as_text=True)
         script_tag = '<script src="/static/mobile-sidebar.js"></script>'
         logout_script = '<script src="/static/logout-helper.js"></script>'
+        search_script = '<script src="/static/portal-search.js"></script>'
         if script_tag not in html and '</body>' in html:
-            html = html.replace('</body>', f'{logout_script}\n{script_tag}</body>')
+            html = html.replace('</body>', f'{logout_script}\n{script_tag}\n{search_script}</body>')
             response.set_data(html)
     return response
 

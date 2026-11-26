@@ -169,7 +169,10 @@
         <div class="main-content">
             <div class="top-bar">
                 <h1>Gallery Management</h1>
-                <a href="{{ url_for('add_gallery_image') }}" class="add-btn">Upload Pictures</a>
+                <div class="action-buttons">
+                    <input type="text" class="search-box" data-portal-search data-search-table="gallery-table" placeholder="Search gallery...">
+                    <a href="{{ url_for('add_gallery_image') }}" class="add-btn">Upload Pictures</a>
+                </div>
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -182,7 +185,7 @@
 
             <div class="table-container">
                 <div class="table-responsive">
-                    <table class="data-table">
+                    <table class="data-table" id="gallery-table">
                         <thead>
                             <tr>
                                 <th>Picture</th>

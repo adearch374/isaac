@@ -320,6 +320,7 @@
             <div class="top-bar">
                 <h1>Manage Students</h1>
                 <div class="action-buttons">
+                    <input id="student-search" type="text" class="search-box" placeholder="Search students..." oninput="filterByClass()">
                     <select id="class-filter" class="search-box" onchange="filterByClass()">
                         <option value="">All Classes</option>
                         {% for cls in classes %}
@@ -349,7 +350,7 @@
 
             {% if students %}
                 <div class="table-responsive">
-<table class="students-table">
+<table class="students-table" id="students-table">
                     <thead>
                         <tr>
                             <th><input id="select-all-students" type="checkbox" aria-label="Select all students" onchange="toggleAllStudents(this)"></th>
@@ -400,8 +401,9 @@
 
     <script>
         function updateBulkDeleteButton() {
-            const checkboxes = document.querySelectorAll('.student-checkbox');
-            const selectedCount = document.querySelectorAll('.student-checkbox:checked').length;
+            const checkboxes = Array.from(document.querySelectorAll('.student-checkbox'))
+                .filter(checkbox => checkbox.closest('tr').style.display !== 'none');
+            const selectedCount = checkboxes.filter(checkbox => checkbox.checked).length;
             const button = document.getElementById('bulk-delete-button');
             const selectAll = document.getElementById('select-all-students');
 
@@ -414,7 +416,9 @@
 
         function toggleAllStudents(selectAll) {
             document.querySelectorAll('.student-checkbox').forEach(checkbox => {
-                checkbox.checked = selectAll.checked;
+                if (checkbox.closest('tr').style.display !== 'none') {
+                    checkbox.checked = selectAll.checked;
+                }
             });
             updateBulkDeleteButton();
         }
@@ -434,19 +438,18 @@
 
         function filterByClass() {
             const classId = document.getElementById('class-filter').value;
+            const query = document.getElementById('student-search').value.trim().toLowerCase();
             const rows = document.querySelectorAll('.students-table tbody tr');
-            
+
             rows.forEach(row => {
-                if (classId === '') {
-                    row.style.display = '';
-                } else {
-                    const classCell = row.cells[3].textContent;
-                    // Get class name from the dropdown
-                    const classSelect = document.getElementById('class-filter');
-                    const selectedClass = classSelect.options[classSelect.selectedIndex].text;
-                    row.style.display = classCell === selectedClass ? '' : 'none';
-                }
+                const classSelect = document.getElementById('class-filter');
+                const selectedClass = classSelect.options[classSelect.selectedIndex].text.trim();
+                const classCell = row.cells[3].textContent.trim();
+                const matchesClass = classId === '' || classCell === selectedClass;
+                const matchesSearch = query === '' || row.textContent.toLowerCase().includes(query);
+                row.style.display = matchesClass && matchesSearch ? '' : 'none';
             });
+            updateBulkDeleteButton();
         }
 
         function printSelectedClass() {

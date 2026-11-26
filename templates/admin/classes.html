@@ -292,6 +292,7 @@
             <div class="top-bar">
                 <h1>Manage Classes</h1>
                 <div class="action-buttons">
+                    <input type="text" class="search-box" data-portal-search data-search-table="classes-table" placeholder="Search classes...">
                     <a href="{{ url_for('add_class') }}" class="btn btn-success">+ Add Class</a>
                 </div>
             </div>
@@ -306,7 +307,7 @@
 
             {% if classes %}
                 <div class="table-responsive">
-<table class="classes-table">
+<table class="classes-table" id="classes-table">
                     <thead>
                         <tr>
                             <th>Class Name</th>
