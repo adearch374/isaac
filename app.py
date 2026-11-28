@@ -1030,6 +1030,114 @@ def edit_teacher(teacher_id):
     
     return render_template('admin/edit_teacher.html', teacher=teacher)
 
+@app.route('/admin/teachers/<int:teacher_id>/subjects', methods=['GET', 'POST'])
+@login_required
+def manage_teacher_subjects(teacher_id):
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+
+    teacher = Teacher.query.get_or_404(teacher_id)
+
+    if request.method == 'POST':
+        try:
+            subject_id = int(request.form.get('subject_id'))
+        except (TypeError, ValueError):
+            flash('Please select a valid subject.', 'error')
+            return redirect(url_for('manage_teacher_subjects', teacher_id=teacher.id))
+
+        subject = Subject.query.filter_by(id=subject_id, is_active=True).first()
+        if not subject:
+            flash('The selected subject could not be found or is inactive.', 'error')
+            return redirect(url_for('manage_teacher_subjects', teacher_id=teacher.id))
+
+        assignment = TeacherSubjectRequest.query.filter_by(
+            teacher_id=teacher.id,
+            subject_id=subject.id,
+            class_id=subject.class_id
+        ).first()
+        if assignment and assignment.status == 'approved':
+            flash('This teacher is already assigned to that subject and class.', 'error')
+            return redirect(url_for('manage_teacher_subjects', teacher_id=teacher.id))
+
+        if assignment:
+            assignment.status = 'approved'
+            assignment.reviewed_at = datetime.utcnow()
+            assignment.reviewed_by = current_user.id
+            assignment.notes = None
+        else:
+            assignment = TeacherSubjectRequest(
+                teacher_id=teacher.id,
+                subject_id=subject.id,
+                class_id=subject.class_id,
+                status='approved',
+                reviewed_at=datetime.utcnow(),
+                reviewed_by=current_user.id
+            )
+            db.session.add(assignment)
+
+        try:
+            db.session.flush()
+            log_activity(
+                current_user.id,
+                'teacher_subject_assign',
+                'TeacherSubjectRequest',
+                assignment.id,
+                f'Admin assigned teacher {teacher.full_name} to {subject.name} ({subject.class_assigned.name})',
+                commit=False
+            )
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash('Unable to assign this subject due to a database constraint.', 'error')
+            return redirect(url_for('manage_teacher_subjects', teacher_id=teacher.id))
+
+        flash('Subject assigned to teacher successfully.', 'success')
+        return redirect(url_for('manage_teacher_subjects', teacher_id=teacher.id))
+
+    assignments = TeacherSubjectRequest.query.filter_by(
+        teacher_id=teacher.id,
+        status='approved'
+    ).order_by(TeacherSubjectRequest.requested_at.desc()).all()
+    subjects = Subject.query.filter_by(is_active=True).join(Class).order_by(
+        Class.name, Subject.name
+    ).all()
+    return render_template(
+        'admin/teacher_subjects.html',
+        teacher=teacher,
+        assignments=assignments,
+        subjects=subjects
+    )
+
+@app.route('/admin/teachers/<int:teacher_id>/subjects/<int:assignment_id>/remove', methods=['POST'])
+@login_required
+def remove_teacher_subject(teacher_id, assignment_id):
+    if current_user.role != 'admin':
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+
+    teacher = Teacher.query.get_or_404(teacher_id)
+    assignment = TeacherSubjectRequest.query.filter_by(
+        id=assignment_id,
+        teacher_id=teacher.id,
+        status='approved'
+    ).first_or_404()
+    assignment.status = 'rejected'
+    assignment.reviewed_at = datetime.utcnow()
+    assignment.reviewed_by = current_user.id
+    assignment.notes = 'Assignment removed by administrator.'
+    log_activity(
+        current_user.id,
+        'teacher_subject_remove',
+        'TeacherSubjectRequest',
+        assignment.id,
+        f'Admin removed teacher {teacher.full_name} from {assignment.subject.name} ({assignment.class_assigned.name})',
+        commit=False
+    )
+    db.session.commit()
+    flash('Subject assignment removed successfully.', 'success')
+    return redirect(url_for('manage_teacher_subjects', teacher_id=teacher.id))
+
 # Class Management
 @app.route('/admin/classes')
 @login_required

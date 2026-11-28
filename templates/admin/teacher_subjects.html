@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Subjects - La Paix Group of Schools</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .dashboard-container { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 250px; background: linear-gradient(135deg, #16223F 0%, #0f1a2f 100%);
+            color: white; padding: 20px; position: fixed; height: 100vh; overflow-y: auto;
+        }
+        .sidebar-header { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header h2 { font-size: 1.2rem; margin-bottom: 5px; }
+        .sidebar-header p { font-size: 0.8rem; opacity: 0.7; }
+        .sidebar-nav ul { list-style: none; }
+        .sidebar-nav li { margin-bottom: 5px; }
+        .sidebar-nav a {
+            display: block; padding: 12px 15px; color: white; text-decoration: none;
+            border-radius: 5px; font-size: 0.9rem;
+        }
+        .sidebar-nav a:hover, .sidebar-nav a.active { background: rgba(255,255,255,0.1); }
+        .sidebar-nav a.active { background: rgba(255,215,0,0.2); border-left: 3px solid #ffd700; }
+        .main-content { flex: 1; margin-left: 250px; padding: 30px; background: #f8f9fa; }
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: center; gap: 15px;
+            margin-bottom: 25px; background: white; padding: 20px; border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .top-bar h1 { color: #16223F; font-size: 1.8rem; margin: 0; }
+        .card {
+            background: white; padding: 25px; border-radius: 10px; margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .card h2 { color: #16223F; margin: 0 0 18px; font-size: 1.25rem; }
+        .assign-form { display: flex; align-items: end; gap: 15px; }
+        .form-group { flex: 1; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .form-group select {
+            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px;
+            font-size: 1rem; background: white;
+        }
+        .btn {
+            padding: 10px 18px; border: 0; border-radius: 5px; text-decoration: none;
+            font-weight: 600; cursor: pointer; display: inline-block; color: white;
+        }
+        .btn-primary { background: #16223F; }
+        .btn-success { background: #28a745; }
+        .btn-danger { background: #dc3545; }
+        .assignments-table { width: 100%; border-collapse: collapse; }
+        .assignments-table th, .assignments-table td {
+            padding: 13px; text-align: left; border-bottom: 1px solid #ddd;
+        }
+        .assignments-table th { background: #16223F; color: white; }
+        .alert { padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .alert.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .empty-state { text-align: center; color: #666; padding: 30px; }
+        @media (max-width: 768px) {
+            .sidebar { width: 200px; }
+            .main-content { margin-left: 200px; padding: 20px; }
+            .top-bar, .assign-form { align-items: stretch; flex-direction: column; }
+        }
+        @media (max-width: 480px) {
+            .sidebar { width: 100%; position: relative; height: auto; }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Admin Panel</h2>
+                <p>La Paix Group of Schools</p>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ url_for('admin_teachers') }}" class="active">Teachers</a></li>
+                    <li><a href="{{ url_for('admin_subjects') }}">Subjects</a></li>
+                    <li><a href="{{ url_for('admin_teacher_requests') }}">Teacher Requests</a></li>
+                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <div class="top-bar">
+                <h1>Subjects: {{ teacher.full_name }}</h1>
+                <a href="{{ url_for('admin_teachers') }}" class="btn btn-primary">Back to Teachers</a>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <section class="card">
+                <h2>Assign a Subject</h2>
+                {% if subjects %}
+                    <form class="assign-form" method="POST">
+                        <div class="form-group">
+                            <label for="subject_id">Subject and class</label>
+                            <select id="subject_id" name="subject_id" required>
+                                <option value="">Select a subject</option>
+                                {% for subject in subjects %}
+                                    <option value="{{ subject.id }}">{{ subject.name }} — {{ subject.class_assigned.name }} ({{ subject.code }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success">Assign Subject</button>
+                    </form>
+                {% else %}
+                    <p>No active subjects are available to assign.</p>
+                {% endif %}
+            </section>
+
+            <section class="card">
+                <h2>Current Assignments</h2>
+                {% if assignments %}
+                    <div class="table-responsive">
+                        <table class="assignments-table">
+                            <thead>
+                                <tr><th>Subject</th><th>Code</th><th>Class</th><th>Assigned</th><th>Action</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in assignments %}
+                                    <tr>
+                                        <td>{{ assignment.subject.name }}</td>
+                                        <td>{{ assignment.subject.code }}</td>
+                                        <td>{{ assignment.class_assigned.name }}</td>
+                                        <td>{{ assignment.reviewed_at.strftime('%B %d, %Y') if assignment.reviewed_at else '-' }}</td>
+                                        <td>
+                                            <form method="POST" action="{{ url_for('remove_teacher_subject', teacher_id=teacher.id, assignment_id=assignment.id) }}">
+                                                <button type="submit" class="btn btn-danger" onclick="return confirm('Remove this teacher from the subject?')">Remove</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="empty-state">This teacher has no current subject assignments.</p>
+                {% endif %}
+            </section>
+        </main>
+    </div>
+</body>
+</html>
